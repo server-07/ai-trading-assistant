@@ -158,21 +158,23 @@ export default function LoginPage() {
           <form className="space-y-5" onSubmit={handleAuth}>
             
             {/* Animated Full Name Field (Only visible on Sign Up) */}
-            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isSignUp ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
-              <div className="space-y-1.5 relative group">
-                <input
-                  className="peer w-full rounded-2xl px-5 py-4 bg-[#111] border border-white/5 focus:border-cyan-500/50 focus:bg-[#151515] focus:outline-none focus:ring-4 focus:ring-cyan-500/10 transition-all text-white placeholder-transparent text-sm shadow-inner"
-                  name="fullName"
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Full Name"
-                  required={isSignUp}
-                />
-                <label className="absolute left-5 -top-2.5 bg-[#0a0a0a] px-1 text-[10px] font-bold uppercase tracking-widest text-cyan-500 transition-all peer-placeholder-shown:text-zinc-500 peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:bg-transparent peer-placeholder-shown:normal-case peer-placeholder-shown:tracking-normal peer-focus:-top-2.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-cyan-500 peer-focus:bg-[#0a0a0a]">
-                  Full Name
-                </label>
-                <User className="absolute right-5 top-4 w-5 h-5 text-zinc-600 peer-focus:text-cyan-500/50 transition-colors pointer-events-none" />
+            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isSignUp ? 'max-h-28 opacity-100 mb-5' : 'max-h-0 opacity-0 mb-0'}`}>
+              <div className="pt-3 pb-1">
+                <div className="space-y-1.5 relative group">
+                  <input
+                    className="peer w-full rounded-2xl px-5 py-4 bg-[#111] border border-white/5 focus:border-cyan-500/50 focus:bg-[#151515] focus:outline-none focus:ring-4 focus:ring-cyan-500/10 transition-all text-white placeholder-transparent text-sm shadow-inner"
+                    name="fullName"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Full Name"
+                    required={isSignUp}
+                  />
+                  <label className="absolute left-5 -top-2.5 bg-[#0a0a0a] px-1 text-[10px] font-bold uppercase tracking-widest text-cyan-500 transition-all peer-placeholder-shown:text-zinc-500 peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:bg-transparent peer-placeholder-shown:normal-case peer-placeholder-shown:tracking-normal peer-focus:-top-2.5 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:tracking-widest peer-focus:text-cyan-500 peer-focus:bg-[#0a0a0a]">
+                    Full Name
+                  </label>
+                  <User className="absolute right-5 top-4 w-5 h-5 text-zinc-600 peer-focus:text-cyan-500/50 transition-colors pointer-events-none" />
+                </div>
               </div>
             </div>
 
