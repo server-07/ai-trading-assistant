@@ -27,7 +27,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-zinc-950 text-white selection:bg-cyan-500/30 font-sans relative overflow-hidden">
+      <body className="min-h-full flex flex-col bg-zinc-950 text-white selection:bg-cyan-500/30 font-sans relative overflow-x-hidden">
         {/* Background Gradients globally */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
           <div className="absolute -top-[40%] -left-[10%] w-[70%] h-[70%] rounded-full bg-blue-900/20 blur-[120px]"></div>
