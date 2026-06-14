@@ -1,4 +1,5 @@
-import { Activity, TrendingUp, TrendingDown, IndianRupee, DollarSign, AlertTriangle, Info } from "lucide-react";
+import { Activity, TrendingUp, TrendingDown, IndianRupee, DollarSign, AlertTriangle, Info, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { useState } from "react";
 
 interface Pick {
   id?: string;
@@ -24,6 +25,45 @@ export default function PicksTable({
   isBearish: boolean, 
   setSelectedNews: (news: {ticker: string, news: string}) => void 
 }) {
+  type SortColumn = 'name' | 'conviction' | 'margin' | null;
+  const [sortColumn, setSortColumn] = useState<SortColumn>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  const handleSort = (col: SortColumn) => {
+    if (sortColumn === col) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(col);
+      setSortDirection('desc');
+    }
+  };
+
+  const getConvictionWeight = (c: string) => {
+    const lower = c.toLowerCase();
+    if (lower === 'high') return 3;
+    if (lower === 'medium') return 2;
+    return 1;
+  };
+
+  const sortedPicks = [...picks].sort((a, b) => {
+    if (!sortColumn) return 0;
+    
+    let comparison = 0;
+    if (sortColumn === 'name') {
+      comparison = a.ticker.localeCompare(b.ticker);
+    } else if (sortColumn === 'conviction') {
+      comparison = getConvictionWeight(a.directional_conviction) - getConvictionWeight(b.directional_conviction);
+    } else if (sortColumn === 'margin') {
+      comparison = Math.abs(a.expected_margin_low) - Math.abs(b.expected_margin_low);
+    }
+
+    return sortDirection === 'asc' ? comparison : -comparison;
+  });
+
+  const SortIcon = ({ column }: { column: SortColumn }) => {
+    if (sortColumn !== column) return <ArrowUpDown className="w-3 h-3 opacity-30 group-hover:opacity-100" />;
+    return sortDirection === 'asc' ? <ArrowUp className="w-3 h-3 text-cyan-400" /> : <ArrowDown className="w-3 h-3 text-cyan-400" />;
+  };
   const getCurrencySymbol = (exchange: string) => {
     return ["NSE", "BSE"].includes(exchange.toUpperCase()) ? "₹" : "$";
   };
@@ -56,16 +96,22 @@ export default function PicksTable({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className={`border-b text-xs uppercase tracking-wider text-zinc-400 ${themeConfig.headerBg}`}>
-                <th className="p-4 font-semibold">Asset</th>
+                <th className="p-4 font-semibold cursor-pointer hover:bg-white/5 transition-colors group" onClick={() => handleSort('name')}>
+                  <div className="flex items-center gap-1.5">Asset <SortIcon column="name" /></div>
+                </th>
                 <th className="p-4 font-semibold w-1/4">Catalyst Engine</th>
-                <th className="p-4 font-semibold">Conviction</th>
+                <th className="p-4 font-semibold cursor-pointer hover:bg-white/5 transition-colors group" onClick={() => handleSort('conviction')}>
+                  <div className="flex items-center gap-1.5">Conviction <SortIcon column="conviction" /></div>
+                </th>
                 <th className="p-4 font-semibold">Price Context</th>
-                <th className="p-4 font-semibold">Target Margin</th>
+                <th className="p-4 font-semibold cursor-pointer hover:bg-white/5 transition-colors group" onClick={() => handleSort('margin')}>
+                  <div className="flex items-center gap-1.5">Target Margin <SortIcon column="margin" /></div>
+                </th>
                 <th className="p-4 font-semibold text-right">Stop-Loss (ATR)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {picks.length === 0 ? (
+              {sortedPicks.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-12 text-center text-zinc-500">
                     <div className="flex flex-col items-center justify-center gap-3">
@@ -74,7 +120,7 @@ export default function PicksTable({
                     </div>
                   </td>
                 </tr>
-              ) : picks.map((pick, i) => {
+              ) : sortedPicks.map((pick, i) => {
                 const sym = getCurrencySymbol(pick.exchange);
                 const openPrice = pick.predictive_open || pick.ltp || 0;
                 
@@ -171,13 +217,13 @@ export default function PicksTable({
 
       {/* Mobile Card List View */}
       <div className="block md:hidden space-y-4">
-        {picks.length === 0 ? (
+        {sortedPicks.length === 0 ? (
           <div className={`flex flex-col items-center justify-center gap-3 p-12 border rounded-2xl ${themeConfig.bg}`}>
             <AlertTriangle className="w-8 h-8 text-yellow-500/50" />
             <p className="text-zinc-500 text-sm">No predictions available.</p>
           </div>
         ) : (
-          picks.map((pick, i) => {
+          sortedPicks.map((pick, i) => {
             const sym = getCurrencySymbol(pick.exchange);
             const openPrice = pick.predictive_open || pick.ltp || 0;
             
