@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { Activity, TrendingUp, DollarSign, IndianRupee, AlertTriangle, Globe, MapPin, Clock, Info, X } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
 
 interface Pick {
   id: string;
@@ -31,10 +32,23 @@ export default function Dashboard() {
     // Fetch picks based on filters
     const fetchPicks = async () => {
       try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-        const res = await fetch(`${baseUrl}/api/picks?region=${region}&timeframe=${timeframe}`);
-        const data = await res.json();
-        setPicks(data);
+        const res = await fetch(`${baseUrl}/api/picks?region=${region}&timeframe=${timeframe}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          setPicks(data);
+        } else {
+          console.error("Failed to fetch picks:", res.status);
+        }
       } catch (err) {
         console.error("Error fetching picks:", err);
       }
@@ -44,21 +58,38 @@ export default function Dashboard() {
   }, [region, timeframe]);
 
   useEffect(() => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-    const s = io(baseUrl, {
-      transports: ["websocket", "polling"]
-    });
-    setSocket(s);
+    let s: Socket;
+    
+    const initSocket = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
 
-    s.on("connect", () => setIsConnected(true));
-    s.on("disconnect", () => setIsConnected(false));
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      s = io(baseUrl, {
+        transports: ["websocket", "polling"],
+        auth: {
+          token: token
+        }
+      });
+      setSocket(s);
 
-    s.on("market_update", (tick: { ticker: string, ltp: number }) => {
-      setPicks(current => current.map(p => p.ticker === tick.ticker ? { ...p, ltp: tick.ltp } : p));
-    });
+      s.on("connect", () => setIsConnected(true));
+      s.on("disconnect", () => setIsConnected(false));
+      s.on("connect_error", (err) => {
+        console.error("Socket connection error:", err);
+        setIsConnected(false);
+      });
+
+      s.on("market_update", (tick: { ticker: string, ltp: number }) => {
+        setPicks(current => current.map(p => p.ticker === tick.ticker ? { ...p, ltp: tick.ltp } : p));
+      });
+    };
+    
+    initSocket();
 
     return () => {
-      s.disconnect();
+      if (s) s.disconnect();
     };
   }, []);
 

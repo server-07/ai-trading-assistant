@@ -1,7 +1,30 @@
 import Dashboard from "@/components/Dashboard";
 import CopilotDrawer from "@/components/CopilotDrawer";
+import { createClient } from "@/utils/supabase/server";
+import { signOut } from "@/app/login/actions";
+import Link from "next/link";
+import { LogOut, ShieldAlert } from "lucide-react";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let isApproved = false;
+  let isAdmin = false;
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_approved, role')
+      .eq('id', user.id)
+      .single();
+    
+    if (profile) {
+      isApproved = profile.is_approved;
+      isAdmin = profile.role === 'admin';
+    }
+  }
+
   return (
     <main className="min-h-screen bg-zinc-950 text-white selection:bg-cyan-500/30 flex flex-col relative overflow-hidden font-sans">
       {/* Background Gradients */}
@@ -10,11 +33,43 @@ export default function Home() {
         <div className="absolute top-[60%] -right-[10%] w-[60%] h-[60%] rounded-full bg-cyan-900/20 blur-[120px]"></div>
       </div>
 
-      {/* Main Dashboard Content */}
-      <Dashboard />
-      
-      {/* Gemini AI Copilot Integration */}
-      <CopilotDrawer />
+      {/* Header / Auth Navigation */}
+      <div className="absolute top-4 right-4 z-50 flex gap-4 items-center">
+        {isAdmin && (
+          <Link href="/admin" className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition bg-cyan-900/20 px-3 py-1.5 rounded-full border border-cyan-800/50">
+            Admin Panel
+          </Link>
+        )}
+        <form action={signOut}>
+          <button className="flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-white transition bg-zinc-900/50 px-3 py-1.5 rounded-full border border-zinc-800/50 backdrop-blur-md">
+            <LogOut size={16} />
+            Sign Out
+          </button>
+        </form>
+      </div>
+
+      {!isApproved ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-700">
+          <div className="w-20 h-20 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(245,158,11,0.1)]">
+            <ShieldAlert size={40} className="text-amber-500" />
+          </div>
+          <h1 className="text-3xl font-bold mb-4">Pending Approval</h1>
+          <p className="text-zinc-400 max-w-md text-lg leading-relaxed">
+            Your account has been created successfully, but it requires administrator approval before you can access the trading dashboard.
+          </p>
+          <p className="text-zinc-500 mt-8 text-sm">
+            Please check back later or contact the administrator.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Main Dashboard Content */}
+          <Dashboard />
+          
+          {/* Gemini AI Copilot Integration */}
+          <CopilotDrawer />
+        </>
+      )}
 
       {/* Compliance Disclaimer Footer */}
       <footer className="mt-auto border-t border-white/10 bg-black/60 backdrop-blur-xl p-6 z-10 relative">
@@ -32,3 +87,4 @@ export default function Home() {
     </main>
   );
 }
+

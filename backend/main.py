@@ -1,9 +1,12 @@
+import os
 import socketio
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from sqlalchemy.orm import Session
-from database import init_db, get_db, NewsArticle, PreMarketPrediction
+from supabase import create_client, Client
+from database import init_db, get_db, NewsArticle, PreMarketPrediction, Profile
 
 app = FastAPI(title="AI Trading Assistant API")
 
@@ -15,6 +18,34 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Setup Auth
+security = HTTPBearer()
+
+def get_supabase_client() -> Client:
+    url: str = os.environ.get("SUPABASE_URL")
+    key: str = os.environ.get("SUPABASE_ANON_KEY")
+    if not url or not key:
+        raise HTTPException(status_code=500, detail="Supabase URL or Key not configured in backend")
+    return create_client(url, key)
+
+def get_current_approved_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    token = credentials.credentials
+    supabase = get_supabase_client()
+    
+    try:
+        # Verify the token with Supabase
+        user_response = supabase.auth.get_user(token)
+        user_id = user_response.user.id
+        
+        # Check database for approval
+        profile = db.query(Profile).filter(Profile.id == user_id).first()
+        if not profile or not profile.is_approved:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not approved")
+            
+        return profile
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
 
 # Setup Socket.IO
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
@@ -30,7 +61,7 @@ def health_check():
     return {"status": "ok"}
 
 @app.get("/api/picks")
-def get_daily_picks(region: str = "ALL", timeframe: str = "7W", db: Session = Depends(get_db)):
+def get_daily_picks(region: str = "ALL", timeframe: str = "7W", db: Session = Depends(get_db), current_user: Profile = Depends(get_current_approved_user)):
     mock_data = {
         "1D": [
             {"ticker": "ZOMATO", "exchange": "NSE", "catalyst_core": "Intraday volume spike due to sudden positive analyst coverage.", "full_news": "Global brokerage firm upgrades Zomato citing robust growth in Blinkit and stable core food delivery margins. Expects strong open.", "directional_conviction": "High", "expected_margin_low": 1.5, "expected_margin_high": 3.0, "stop_loss_atr": 5.0, "invalidation_level": 160.0, "ltp": 165.0, "predictive_open": 168.0},
@@ -63,8 +94,33 @@ def get_daily_picks(region: str = "ALL", timeframe: str = "7W", db: Session = De
     return picks
 
 @sio.event
-async def connect(sid, environ):
-    print(f"Client connected: {sid}")
+async def connect(sid, environ, auth):
+    # Authenticate socketio connection
+    try:
+        if not auth or 'token' not in auth:
+            return False
+        
+        token = auth['token']
+        
+        from supabase import create_client
+        url = os.environ.get("SUPABASE_URL")
+        key = os.environ.get("SUPABASE_ANON_KEY")
+        if not url or not key:
+            print("Supabase config missing for socket")
+            return False
+            
+        supabase = create_client(url, key)
+        user_response = supabase.auth.get_user(token)
+        user_id = user_response.user.id
+        
+        if not user_id:
+            return False
+            
+        print(f"Client connected: {sid} (User: {user_id})")
+        return True
+    except Exception as e:
+        print(f"Socket connection rejected: {e}")
+        return False
 
 @sio.event
 async def disconnect(sid):

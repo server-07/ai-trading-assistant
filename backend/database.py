@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Column, String, Text, DateTime, Float, Integer, JSON, Date, text
+from sqlalchemy import create_engine, Column, String, Text, DateTime, Float, Integer, JSON, Date, Boolean, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from pgvector.sqlalchemy import Vector
@@ -28,6 +28,15 @@ class NewsArticle(Base):
     entities = Column(JSONB)
     sentiment_score = Column(Float)
     embedding = Column(Vector(768)) # Gemini text-embedding-004 outputs 768 dims
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+class Profile(Base):
+    __tablename__ = "profiles"
+
+    id = Column(UUID(as_uuid=True), primary_key=True)
+    email = Column(String)
+    role = Column(String(50))
+    is_approved = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 class PreMarketPrediction(Base):
