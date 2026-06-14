@@ -29,7 +29,7 @@ export default function Dashboard() {
   const [activeSection, setActiveSection] = useState<'bullish' | 'bearish' | 'commodities'>('bullish');
   const [isConnected, setIsConnected] = useState(false);
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [timeframe, setTimeframe] = useState("7W");
+  const [timeframe, setTimeframe] = useState("1Y");
   const [region, setRegion] = useState("ALL");
   const [selectedNews, setSelectedNews] = useState<{ticker: string, news: string} | null>(null);
 
@@ -148,7 +148,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex bg-zinc-900/80 p-1 rounded-xl border border-white/10 justify-around sm:justify-start">
-            {['1D', '1W', '1M', '7W'].map(t => (
+            {['1D', '1W', '1M', '1Y'].map(t => (
               <button 
                 key={t}
                 onClick={() => setTimeframe(t)}
@@ -210,7 +210,7 @@ export default function Dashboard() {
           onClick={() => setActiveSection('commodities')}
           className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-all ${activeSection === 'commodities' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 shadow-md' : 'text-zinc-400 hover:text-white'}`}
         >
-          <Activity className="w-5 h-5 sm:w-4 sm:h-4" /> Macro
+          <Activity className="w-5 h-5 sm:w-4 sm:h-4" /> Commodity
         </button>
       </div>
 

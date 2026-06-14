@@ -24,12 +24,14 @@ interface CommodityData {
 interface CommoditiesResponse {
   gold: CommodityData;
   silver: CommodityData;
+  crude_oil: CommodityData;
 }
 
 export default function CommoditiesSection() {
   const [data, setData] = useState<CommoditiesResponse | null>(null);
   const [goldTimeframe, setGoldTimeframe] = useState<"1D" | "1W" | "1M" | "1Y">("1M");
   const [silverTimeframe, setSilverTimeframe] = useState<"1D" | "1W" | "1M" | "1Y">("1M");
+  const [oilTimeframe, setOilTimeframe] = useState<"1D" | "1W" | "1M" | "1Y">("1M");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,7 +68,7 @@ export default function CommoditiesSection() {
         <Activity className="w-6 h-6 text-yellow-500" />
         Macro Commodities Intelligence
       </h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <CommodityCard 
           id="gold-chart" 
           commodity={data.gold} 
@@ -80,6 +82,13 @@ export default function CommoditiesSection() {
           timeframe={silverTimeframe} 
           setTimeframe={setSilverTimeframe} 
           theme="slate" 
+        />
+        <CommodityCard 
+          id="oil-chart" 
+          commodity={data.crude_oil} 
+          timeframe={oilTimeframe} 
+          setTimeframe={setOilTimeframe} 
+          theme="blue" 
         />
       </div>
     </div>
@@ -97,7 +106,7 @@ function CommodityCard({
   commodity: CommodityData, 
   timeframe: "1D" | "1W" | "1M" | "1Y", 
   setTimeframe: any, 
-  theme: "yellow" | "slate" 
+  theme: "yellow" | "slate" | "blue" 
 }) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -119,6 +128,14 @@ function CommodityCard({
       line: "#cbd5e1",
       areaTop: "rgba(203, 213, 225, 0.4)",
       areaBottom: "rgba(203, 213, 225, 0.0)",
+    },
+    blue: {
+      text: "text-blue-400",
+      bg: "bg-blue-500/10",
+      border: "border-blue-500/20",
+      line: "#3b82f6",
+      areaTop: "rgba(59, 130, 246, 0.4)",
+      areaBottom: "rgba(59, 130, 246, 0.0)",
     }
   };
 

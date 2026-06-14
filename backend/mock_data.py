@@ -63,7 +63,7 @@ def get_mock_picks():
                 {"ticker": "TCS", "exchange": "NSE", "catalyst_core": "Margin pressure from wage hikes realizing this month.", "full_news": "The impact of the annual wage hike cycle is hitting TCS's P&L this month, causing short-term bearish pressure from institutional sellers.", "directional_conviction": "Low", "expected_margin_low": -1.5, "expected_margin_high": -3.5, "stop_loss_atr": 40.0, "invalidation_level": 3950.0, "ltp": 3800.0, "predictive_open": 3750.0}
             ]
         },
-        "7W": {
+        "1Y": {
             "bullish": [
                 {"ticker": "RELIANCE", "exchange": "NSE", "catalyst_core": "Strong Q4 earnings combined with a 7-week bullish trend in new energy.", "full_news": "Reliance's massive gigafactory investments are finally coming online. 7 weeks of sentiment analysis show an overwhelmingly positive shift in institutional reports.", "directional_conviction": "High", "expected_margin_low": 2.5, "expected_margin_high": 4.0, "stop_loss_atr": 45.5, "invalidation_level": 2800.0, "ltp": 2850.0, "predictive_open": 2885.0},
                 {"ticker": "NVDA", "exchange": "NASDAQ", "catalyst_core": "7-week continuous easing of semiconductor supply chain, Blackwell hype.", "full_news": "TSMC confirmed ample CoWoS packaging capacity for NVIDIA's next-gen Blackwell chips. The 7-week vector analysis flags this as a critical inflection point for margins.", "directional_conviction": "High", "expected_margin_low": 4.0, "expected_margin_high": 7.5, "stop_loss_atr": 15.0, "invalidation_level": 115.0, "ltp": 120.0, "predictive_open": 124.0},
@@ -89,13 +89,12 @@ def get_mock_picks():
 import random
 import datetime
 
-def generate_commodity_data(base_price, volatility, trend):
+def generate_commodity_data(base_price, volatility, trend, days=100):
     data = []
     current_price = base_price
     
-    # Generate 100 days of data
-    start_date = datetime.datetime.now() - datetime.timedelta(days=100)
-    for i in range(100):
+    start_date = datetime.datetime.now() - datetime.timedelta(days=days)
+    for i in range(days):
         date_str = (start_date + datetime.timedelta(days=i)).strftime("%Y-%m-%d")
         
         # Add random noise and trend
@@ -128,10 +127,10 @@ def get_mock_commodities():
             "catalyst": "Central bank buying from emerging markets remains aggressively high. Safe-haven demand spiking ahead of key geopolitical elections.",
             "prediction": "Bullish breakout expected above ₹72,800 resistance within the next 48 hours.",
             "data": {
-                "1D": generate_commodity_data(72000, 0.002, 0.0005)[-24:],
-                "1W": generate_commodity_data(71000, 0.004, 0.001)[-7:], 
-                "1M": generate_commodity_data(69500, 0.006, 0.002)[-30:],
-                "1Y": generate_commodity_data(59000, 0.015, 0.0005)
+                "1D": generate_commodity_data(72000, 0.002, 0.0005, 24),
+                "1W": generate_commodity_data(71000, 0.004, 0.001, 7), 
+                "1M": generate_commodity_data(69500, 0.006, 0.002, 30),
+                "1Y": generate_commodity_data(59000, 0.015, 0.0005, 365)
             }
         },
         "silver": {
@@ -143,10 +142,25 @@ def get_mock_commodities():
             "catalyst": "Industrial demand forecast cut by Chinese manufacturers. Solar panel production slowing down due to excessive inventory build-up.",
             "prediction": "Bearish slide to test ₹90,000 psychological support level amid weak macro data.",
             "data": {
-                "1D": generate_commodity_data(92500, 0.005, -0.001)[-24:],
-                "1W": generate_commodity_data(95000, 0.01, -0.002)[-7:],
-                "1M": generate_commodity_data(85000, 0.02, 0.001)[-30:],
-                "1Y": generate_commodity_data(72000, 0.03, 0.001)
+                "1D": generate_commodity_data(92500, 0.005, -0.001, 24),
+                "1W": generate_commodity_data(95000, 0.01, -0.002, 7),
+                "1M": generate_commodity_data(85000, 0.02, 0.001, 30),
+                "1Y": generate_commodity_data(72000, 0.03, 0.001, 365)
+            }
+        },
+        "crude_oil": {
+            "name": "Crude Oil (MCX INR/BBL)",
+            "current_price": 6620.00,
+            "change": "+140.00",
+            "change_pct": "+2.15%",
+            "trend": "bullish",
+            "catalyst": "OPEC+ extends voluntary production cuts into Q4. Geopolitical tensions in the Middle East threatening key supply routes.",
+            "prediction": "Bullish momentum likely to test ₹6,800 resistance levels if supply constraints persist.",
+            "data": {
+                "1D": generate_commodity_data(6480, 0.003, 0.001, 24),
+                "1W": generate_commodity_data(6550, 0.008, 0.002, 7),
+                "1M": generate_commodity_data(6200, 0.015, 0.001, 30),
+                "1Y": generate_commodity_data(5800, 0.02, 0.0005, 365)
             }
         }
     }
