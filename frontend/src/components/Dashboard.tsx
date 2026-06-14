@@ -106,6 +106,15 @@ export default function Dashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    // Automatically trigger a refresh/sync every 1 hour (3600000 ms)
+    const interval = setInterval(() => {
+      setRefreshTrigger(prev => prev + 1);
+    }, 3600000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   const getCurrencySymbol = (exchange: string) => {
     return ["NSE", "BSE"].includes(exchange.toUpperCase()) ? "₹" : "$";
   };
@@ -164,7 +173,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between sm:justify-start gap-3 sm:ml-2 sm:border-l border-white/10 sm:pl-6 h-10 w-full sm:w-auto">
             <button 
               onClick={() => setRefreshTrigger(prev => prev + 1)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 border border-indigo-500/30 rounded-lg text-xs font-bold transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 border border-indigo-500/30 rounded-lg text-xs font-bold transition-all relative z-20 cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Sync Now
             </button>
