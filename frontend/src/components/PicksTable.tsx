@@ -1,0 +1,276 @@
+import { Activity, TrendingUp, TrendingDown, IndianRupee, DollarSign, AlertTriangle, Info } from "lucide-react";
+
+interface Pick {
+  id?: string;
+  ticker: string;
+  exchange: string;
+  catalyst_core: string;
+  full_news: string;
+  directional_conviction: string;
+  expected_margin_low: number;
+  expected_margin_high: number;
+  stop_loss_atr: number;
+  invalidation_level: number;
+  ltp?: number;
+  predictive_open?: number;
+}
+
+export default function PicksTable({ 
+  picks, 
+  isBearish, 
+  setSelectedNews 
+}: { 
+  picks: Pick[], 
+  isBearish: boolean, 
+  setSelectedNews: (news: {ticker: string, news: string}) => void 
+}) {
+  const getCurrencySymbol = (exchange: string) => {
+    return ["NSE", "BSE"].includes(exchange.toUpperCase()) ? "₹" : "$";
+  };
+  
+  const getCurrencyIcon = (exchange: string) => {
+    return ["NSE", "BSE"].includes(exchange.toUpperCase()) 
+      ? <IndianRupee className="w-5 h-5 text-green-400" />
+      : <DollarSign className="w-5 h-5 text-blue-400" />;
+  };
+
+  const calculateAbsoluteMargin = (price: number, percentage: number) => {
+    return (price * (Math.abs(percentage) / 100)).toFixed(2);
+  };
+
+  const themeConfig = {
+    bg: isBearish ? "bg-red-950/10 border-red-900/30" : "bg-white/5 border-white/10",
+    headerBg: isBearish ? "bg-red-950/40 border-red-900/30" : "bg-black/40 border-white/10",
+    textPrimary: isBearish ? "text-red-400" : "text-emerald-400",
+    textSecondary: isBearish ? "text-red-500/70" : "text-emerald-500/70",
+    iconBg: isBearish ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    rowHover: isBearish ? "hover:bg-red-900/10" : "hover:bg-white/5",
+    sign: isBearish ? "" : "+"
+  };
+
+  return (
+    <div className="w-full flex flex-col gap-4">
+      {/* Desktop Table View */}
+      <div className={`hidden md:block border rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl ${themeConfig.bg}`}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className={`border-b text-xs uppercase tracking-wider text-zinc-400 ${themeConfig.headerBg}`}>
+                <th className="p-4 font-semibold">Asset</th>
+                <th className="p-4 font-semibold w-1/4">Catalyst Engine</th>
+                <th className="p-4 font-semibold">Conviction</th>
+                <th className="p-4 font-semibold">Price Context</th>
+                <th className="p-4 font-semibold">Target Margin</th>
+                <th className="p-4 font-semibold text-right">Stop-Loss (ATR)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {picks.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-12 text-center text-zinc-500">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <AlertTriangle className="w-8 h-8 text-yellow-500/50" />
+                      <p>No predictions available.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : picks.map((pick, i) => {
+                const sym = getCurrencySymbol(pick.exchange);
+                const openPrice = pick.predictive_open || pick.ltp || 0;
+                
+                return (
+                  <tr key={i} className={`transition-colors group ${themeConfig.rowHover}`}>
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`h-10 w-10 rounded-full flex items-center justify-center border border-white/10 ${isBearish ? 'bg-gradient-to-br from-red-500/20 to-orange-500/20' : (sym === '₹' ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20' : 'bg-gradient-to-br from-blue-500/20 to-purple-500/20')}`}>
+                          {getCurrencyIcon(pick.exchange)}
+                        </div>
+                        <div>
+                          <div className="font-bold text-lg text-white">{pick.ticker}</div>
+                          <div className="text-xs text-zinc-500">{pick.exchange}</div>
+                        </div>
+                      </div>
+                    </td>
+                    
+                    <td className="p-4">
+                      <button 
+                        onClick={() => setSelectedNews({ ticker: pick.ticker, news: pick.full_news || pick.catalyst_core })}
+                        className="text-left group/btn"
+                      >
+                        <div className="text-sm text-zinc-300 line-clamp-2 max-w-sm group-hover/btn:text-cyan-400 transition-colors cursor-pointer flex items-start gap-2">
+                          <Info className="w-4 h-4 shrink-0 mt-0.5 opacity-50 group-hover/btn:opacity-100" />
+                          {pick.catalyst_core}
+                        </div>
+                      </button>
+                    </td>
+
+                    <td className="p-4">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+                        pick.directional_conviction.toLowerCase() === 'high' 
+                          ? themeConfig.iconBg
+                          : pick.directional_conviction.toLowerCase() === 'medium'
+                          ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+                          : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
+                      }`}>
+                        {pick.directional_conviction.toLowerCase() === 'high' && (isBearish ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />)}
+                        {pick.directional_conviction}
+                      </span>
+                    </td>
+
+                    <td className="p-4">
+                      <div className="flex flex-col gap-1 font-mono text-sm">
+                        <div className="flex items-center gap-2 text-zinc-400">
+                          <span className="w-12">LTP:</span> 
+                          <span className="text-white">
+                            {pick.ltp ? `${sym}${pick.ltp.toFixed(2)}` : '---'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-zinc-400">
+                          <span className="w-12 text-blue-400">Open:</span> 
+                          <span className="text-blue-400 font-bold">
+                            {pick.predictive_open ? `${sym}${pick.predictive_open.toFixed(2)}` : '---'}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="p-4">
+                      <div className="flex flex-col gap-1 text-sm font-mono">
+                        <div className={`${themeConfig.textPrimary} font-bold flex items-center gap-2`}>
+                          <span>{themeConfig.sign}{pick.expected_margin_low}%</span>
+                          <span className="text-zinc-600">→</span>
+                          <span>{themeConfig.sign}{pick.expected_margin_high}%</span>
+                        </div>
+                        {openPrice > 0 && (
+                          <div className={`${themeConfig.textSecondary} text-xs`}>
+                            {isBearish ? "-" : "+"}{sym}{calculateAbsoluteMargin(openPrice, pick.expected_margin_low)} to {isBearish ? "-" : "+"}{sym}{calculateAbsoluteMargin(openPrice, pick.expected_margin_high)}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+
+                    <td className="p-4 text-right">
+                      <div className="flex flex-col items-end gap-1 font-mono text-sm">
+                        <div className="text-red-400 font-bold bg-red-500/10 inline-block px-3 py-1 rounded border border-red-500/20">
+                          {pick.stop_loss_atr ? `${sym}${pick.stop_loss_atr.toFixed(2)}` : "N/A"}
+                        </div>
+                        {openPrice > 0 && pick.stop_loss_atr && (
+                          <div className="text-zinc-500 text-xs mt-1">
+                            Trigger: {sym}{(isBearish ? openPrice + pick.stop_loss_atr : openPrice - pick.stop_loss_atr).toFixed(2)}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Mobile Card List View */}
+      <div className="block md:hidden space-y-4">
+        {picks.length === 0 ? (
+          <div className={`flex flex-col items-center justify-center gap-3 p-12 border rounded-2xl ${themeConfig.bg}`}>
+            <AlertTriangle className="w-8 h-8 text-yellow-500/50" />
+            <p className="text-zinc-500 text-sm">No predictions available.</p>
+          </div>
+        ) : (
+          picks.map((pick, i) => {
+            const sym = getCurrencySymbol(pick.exchange);
+            const openPrice = pick.predictive_open || pick.ltp || 0;
+            
+            return (
+              <div key={i} className={`p-5 rounded-2xl flex flex-col gap-4 shadow-xl backdrop-blur-md border ${themeConfig.bg}`}>
+                {/* Header Info */}
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    <div className={`h-10 w-10 rounded-full flex items-center justify-center border border-white/10 ${isBearish ? 'bg-gradient-to-br from-red-500/20 to-orange-500/20' : (sym === '₹' ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20' : 'bg-gradient-to-br from-blue-500/20 to-purple-500/20')}`}>
+                      {getCurrencyIcon(pick.exchange)}
+                    </div>
+                    <div>
+                      <div className="font-bold text-lg text-white">{pick.ticker}</div>
+                      <div className="text-xs text-zinc-500">{pick.exchange}</div>
+                    </div>
+                  </div>
+
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+                    pick.directional_conviction.toLowerCase() === 'high' 
+                      ? themeConfig.iconBg
+                      : pick.directional_conviction.toLowerCase() === 'medium'
+                      ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+                      : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
+                  }`}>
+                    {pick.directional_conviction.toLowerCase() === 'high' && (isBearish ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />)}
+                    {pick.directional_conviction}
+                  </span>
+                </div>
+
+                {/* Catalyst News Button */}
+                <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                  <button 
+                    onClick={() => setSelectedNews({ ticker: pick.ticker, news: pick.full_news || pick.catalyst_core })}
+                    className="text-left w-full group/btn"
+                  >
+                    <div className="text-xs text-zinc-300 group-hover/btn:text-cyan-400 transition-colors flex items-start gap-2">
+                      <Info className="w-4 h-4 shrink-0 text-cyan-400 mt-0.5" />
+                      <div className="line-clamp-2 leading-relaxed">
+                        {pick.catalyst_core}
+                      </div>
+                    </div>
+                  </button>
+                </div>
+
+                {/* Value Metrics Grid */}
+                <div className="grid grid-cols-2 gap-3 mt-1">
+                  <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex flex-col gap-1.5">
+                    <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider">Price Context</span>
+                    <div className="flex flex-col gap-1 text-xs font-mono">
+                      <div className="flex justify-between">
+                        <span className="text-zinc-400">LTP:</span>
+                        <span className="text-white font-bold">{pick.ltp ? `${sym}${pick.ltp.toFixed(2)}` : '---'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-blue-400">Open:</span>
+                        <span className="text-blue-400 font-bold">{pick.predictive_open ? `${sym}${pick.predictive_open.toFixed(2)}` : '---'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex flex-col gap-1.5">
+                    <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider">Stop-Loss (ATR)</span>
+                    <div className="flex flex-col items-start gap-1 text-xs font-mono">
+                      <div className="text-red-400 font-bold bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
+                        {pick.stop_loss_atr ? `${sym}${pick.stop_loss_atr.toFixed(2)}` : "N/A"}
+                      </div>
+                      {openPrice > 0 && pick.stop_loss_atr && (
+                        <div className="text-zinc-500 text-[9px]">
+                          Trig: {sym}{(isBearish ? openPrice + pick.stop_loss_atr : openPrice - pick.stop_loss_atr).toFixed(2)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex flex-col gap-1">
+                  <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider">Target Margin</span>
+                  <div className="flex items-center justify-between font-mono">
+                    <div className={`${themeConfig.textPrimary} font-bold text-sm`}>
+                      {themeConfig.sign}{pick.expected_margin_low}% <span className="text-zinc-500">→</span> {themeConfig.sign}{pick.expected_margin_high}%
+                    </div>
+                    {openPrice > 0 && (
+                      <div className={`${themeConfig.textSecondary} text-xs`}>
+                        {isBearish ? "-" : "+"}{sym}{calculateAbsoluteMargin(openPrice, pick.expected_margin_low)} to {isBearish ? "-" : "+"}{sym}{calculateAbsoluteMargin(openPrice, pick.expected_margin_high)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
