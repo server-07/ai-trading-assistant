@@ -45,7 +45,8 @@ def get_current_approved_user(credentials: HTTPAuthorizationCredentials = Depend
             
         return profile
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
+        error_msg = str(e)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Authentication failed: {error_msg}")
 
 # Setup Socket.IO
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')

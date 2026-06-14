@@ -1,7 +1,7 @@
 import Dashboard from "@/components/Dashboard";
 import CopilotDrawer from "@/components/CopilotDrawer";
 import { createClient } from "@/utils/supabase/server";
-import { signOut } from "@/app/login/actions";
+import { signOut } from "@/app/auth-actions";
 import Link from "next/link";
 import { LogOut, ShieldAlert } from "lucide-react";
 
