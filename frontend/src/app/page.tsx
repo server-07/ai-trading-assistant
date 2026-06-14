@@ -4,7 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { signOut } from "@/app/auth-actions";
 import Link from "next/link";
 import { LogOut, ShieldAlert } from "lucide-react";
-
+import { cookies } from "next/headers";
 export default async function Home() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -13,7 +13,15 @@ export default async function Home() {
   let isAdmin = false;
   let fullName = "";
 
-  if (user) {
+  // BYPASS LOGIC FOR TESTING
+  const cookieStore = cookies();
+  const hasBypassCookie = cookieStore.get('bypass_auth')?.value === 'true';
+
+  if (hasBypassCookie) {
+    isApproved = true;
+    isAdmin = true;
+    fullName = "Server Admin (Bypass)";
+  } else if (user) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('is_approved, role, full_name')

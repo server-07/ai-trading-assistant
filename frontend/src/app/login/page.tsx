@@ -51,6 +51,15 @@ export default function LoginPage() {
         setIsSignUp(false)
         setPassword('')
       } else {
+        // BYPASS LOGIC FOR TESTING
+        if (email === 'server' && password === 'server') {
+          // Store a flag in local storage or use a cookie to simulate auth for the bypass
+          document.cookie = 'bypass_auth=true; path=/; max-age=86400';
+          router.push('/')
+          router.refresh()
+          return
+        }
+
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,

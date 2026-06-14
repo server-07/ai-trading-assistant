@@ -38,8 +38,18 @@ export async function updateSession(request: NextRequest) {
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login')
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
 
+  // BYPASS LOGIC FOR TESTING
+  const hasBypassCookie = request.cookies.get('bypass_auth')?.value === 'true'
+
+  if (hasBypassCookie && isAuthRoute) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/'
+    return NextResponse.redirect(url)
+  }
+
   if (
     !user &&
+    !hasBypassCookie &&
     !isAuthRoute &&
     !request.nextUrl.pathname.startsWith('/_next') &&
     !request.nextUrl.pathname.startsWith('/api') && // Allow backend API calls if any are proxied
