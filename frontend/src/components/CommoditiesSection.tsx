@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createChart, ColorType, IChartApi } from "lightweight-charts";
+import { createChart, ColorType, IChartApi, CandlestickSeries } from "lightweight-charts";
 import { Clock, TrendingUp, TrendingDown, Info, Activity } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
@@ -149,7 +149,7 @@ function CommodityCard({
     
     chartRef.current = chart;
 
-    const candlestickSeries = chart.addCandlestickSeries({
+    const candlestickSeries = chart.addSeries(CandlestickSeries, {
       upColor: '#10b981',
       downColor: '#ef4444',
       borderVisible: false,
