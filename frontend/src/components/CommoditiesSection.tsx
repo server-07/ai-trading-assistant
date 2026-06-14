@@ -144,7 +144,7 @@ function CommodityCard({
         priceFormatter: (price: number) => '₹' + price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
       },
       rightPriceScale: {
-        minimumWidth: 85,
+        minimumWidth: 110,
       },
       width: chartContainerRef.current.clientWidth,
       height: 300,
