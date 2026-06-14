@@ -41,10 +41,11 @@ export default function CommoditiesSection() {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       
       try {
-        const res = await fetch(`${baseUrl}/api/commodities`, {
+        const res = await fetch(`${baseUrl}/api/commodities?t=${Date.now()}`, {
           headers: {
             'Authorization': `Bearer ${token}`
-          }
+          },
+          cache: 'no-store'
         });
         if (res.ok) {
           const json = await res.json();
@@ -139,6 +140,9 @@ function CommodityCard({
         vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
         horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
       },
+      localization: {
+        priceFormatter: (price: number) => '₹' + price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      },
       width: chartContainerRef.current.clientWidth,
       height: 300,
       timeScale: {
@@ -179,7 +183,7 @@ function CommodityCard({
             <div className={`flex flex-col text-sm font-mono ${isBullish ? 'text-emerald-400' : 'text-red-400'}`}>
               <span className="flex items-center gap-1">
                 {isBullish ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                {commodity.change}
+                {commodity.change.replace(/[+-]/, match => match + '₹')}
               </span>
               <span>{commodity.change_pct}</span>
             </div>
