@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Column, String, Text, DateTime, Float, Integer, JSON, Date, Boolean, text
+from sqlalchemy import create_engine, Column, String, Text, DateTime, Float, Integer, JSON, Date, Boolean, text, func
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from pgvector.sqlalchemy import Vector
