@@ -7,7 +7,7 @@ import { cookies } from 'next/headers'
 export default async function AdminPage() {
   const supabase = await createClient()
 
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const hasBypassCookie = cookieStore.get('bypass_auth')?.value === 'true'
 
   // 1. Verify Authentication

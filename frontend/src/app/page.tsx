@@ -14,7 +14,7 @@ export default async function Home() {
   let fullName = "";
 
   // BYPASS LOGIC FOR TESTING
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const hasBypassCookie = cookieStore.get('bypass_auth')?.value === 'true';
 
   if (hasBypassCookie) {
