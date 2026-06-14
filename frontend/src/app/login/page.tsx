@@ -191,7 +191,7 @@ export default function LoginPage() {
               <input
                 className="peer w-full rounded-2xl px-5 py-4 bg-[#111] border border-white/5 focus:border-cyan-500/50 focus:bg-[#151515] focus:outline-none focus:ring-4 focus:ring-cyan-500/10 transition-all text-white placeholder-transparent text-sm shadow-inner"
                 name="email"
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email Address"
