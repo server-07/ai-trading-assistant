@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    # This image contains both PostgreSQL, TimescaleDB, and pgvector extensions
+    image: timescale/timescaledb-ha:pg15
+    container_name: ai_trading_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ai_trading
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
