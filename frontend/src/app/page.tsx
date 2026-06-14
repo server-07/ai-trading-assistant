@@ -11,17 +11,19 @@ export default async function Home() {
 
   let isApproved = false;
   let isAdmin = false;
+  let fullName = "";
 
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('is_approved, role')
+      .select('is_approved, role, full_name')
       .eq('id', user.id)
       .single();
     
     if (profile) {
       isApproved = profile.is_approved;
       isAdmin = profile.role === 'admin';
+      fullName = profile.full_name || "Trader";
     }
   }
 
@@ -30,6 +32,12 @@ export default async function Home() {
 
       {/* Header / Auth Navigation */}
       <div className="absolute top-4 right-4 z-50 flex gap-4 items-center">
+        {fullName && (
+          <div className="text-sm font-medium text-zinc-300 mr-2 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Hi, {fullName}
+          </div>
+        )}
         {isAdmin && (
           <Link href="/admin" className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition bg-cyan-900/20 px-3 py-1.5 rounded-full border border-cyan-800/50">
             Admin Panel

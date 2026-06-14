@@ -33,11 +33,12 @@ class NewsArticle(Base):
 class Profile(Base):
     __tablename__ = "profiles"
 
-    id = Column(UUID(as_uuid=True), primary_key=True)
-    email = Column(String)
-    role = Column(String(50))
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True)
+    email = Column(String, index=True)
+    full_name = Column(String, nullable=True)
+    role = Column(String, default="user")
     is_approved = Column(Boolean, default=False)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class PreMarketPrediction(Base):
     __tablename__ = "pre_market_predictions"
