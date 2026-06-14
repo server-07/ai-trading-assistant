@@ -1,4 +1,11 @@
-def get_mock_picks():
+import random
+import datetime
+import time
+import threading
+import urllib.parse
+import requests
+
+def get_base_picks():
     return {
         "1D": {
             "bullish": [
@@ -65,29 +72,26 @@ def get_mock_picks():
         },
         "1Y": {
             "bullish": [
-                {"ticker": "RELIANCE", "exchange": "NSE", "catalyst_core": "Strong Q4 earnings combined with a 7-week bullish trend in new energy.", "full_news": "Reliance's massive gigafactory investments are finally coming online. 7 weeks of sentiment analysis show an overwhelmingly positive shift in institutional reports.", "directional_conviction": "High", "expected_margin_low": 2.5, "expected_margin_high": 4.0, "stop_loss_atr": 45.5, "invalidation_level": 2800.0, "ltp": 2850.0, "predictive_open": 2885.0},
-                {"ticker": "NVDA", "exchange": "NASDAQ", "catalyst_core": "7-week continuous easing of semiconductor supply chain, Blackwell hype.", "full_news": "TSMC confirmed ample CoWoS packaging capacity for NVIDIA's next-gen Blackwell chips. The 7-week vector analysis flags this as a critical inflection point for margins.", "directional_conviction": "High", "expected_margin_low": 4.0, "expected_margin_high": 7.5, "stop_loss_atr": 15.0, "invalidation_level": 115.0, "ltp": 120.0, "predictive_open": 124.0},
-                {"ticker": "TCS", "exchange": "NSE", "catalyst_core": "Long-term deal wins accumulating over the 7-week vector window.", "full_news": "TCS announced a $1B+ digital transformation deal in the UK. This adds to a 7-week streak of consistent deal pipelines being finalized.", "directional_conviction": "Medium", "expected_margin_low": 1.0, "expected_margin_high": 2.5, "stop_loss_atr": 30.0, "invalidation_level": 3700.0, "ltp": 3750.0, "predictive_open": 3765.0},
-                {"ticker": "AMZN", "exchange": "NASDAQ", "catalyst_core": "Project Kuiper and AWS growth compounding over the 7-week cycle.", "full_news": "Amazon's satellite internet division and accelerating AWS growth have created a solid fundamental floor over the last 7 weeks.", "directional_conviction": "High", "expected_margin_low": 5.0, "expected_margin_high": 9.0, "stop_loss_atr": 8.0, "invalidation_level": 175.0, "ltp": 185.0, "predictive_open": 192.0},
-                {"ticker": "BHARTIARTL", "exchange": "NSE", "catalyst_core": "ARPU expansion solidifying after tariff hikes 7 weeks ago.", "full_news": "The effects of the recent tariff hikes are fully visible in the 7-week data, with ARPU expanding without significant subscriber churn.", "directional_conviction": "High", "expected_margin_low": 6.0, "expected_margin_high": 10.0, "stop_loss_atr": 20.0, "invalidation_level": 1300.0, "ltp": 1400.0, "predictive_open": 1450.0},
-                {"ticker": "AVGO", "exchange": "NASDAQ", "catalyst_core": "Custom AI silicon demand and VMWare synergy realization.", "full_news": "Broadcom's custom ASIC business is booming. The 7-week integration data of VMWare shows better-than-expected cost synergies.", "directional_conviction": "High", "expected_margin_low": 7.0, "expected_margin_high": 12.0, "stop_loss_atr": 40.0, "invalidation_level": 1400.0, "ltp": 1550.0, "predictive_open": 1620.0},
-                {"ticker": "LT", "exchange": "NSE", "catalyst_core": "Infrastructure capex execution reaching peak velocity.", "full_news": "L&T's execution speed on domestic infra projects has hit a 7-week high, ensuring strong revenue recognition for the upcoming quarter.", "directional_conviction": "High", "expected_margin_low": 4.0, "expected_margin_high": 8.0, "stop_loss_atr": 60.0, "invalidation_level": 3400.0, "ltp": 3600.0, "predictive_open": 3700.0},
-                {"ticker": "GOOGL", "exchange": "NASDAQ", "catalyst_core": "Search monetization stabilizing after initial AI overviews scare.", "full_news": "After a rocky start, Google's AI Overviews are showing stable ad click-through rates over the last 7 weeks, easing investor anxiety.", "directional_conviction": "Medium", "expected_margin_low": 3.0, "expected_margin_high": 6.0, "stop_loss_atr": 6.0, "invalidation_level": 165.0, "ltp": 175.0, "predictive_open": 180.0},
-                {"ticker": "SUNPHARMA", "exchange": "NSE", "catalyst_core": "Specialty portfolio driving US revenue growth consistently.", "full_news": "Prescription data over the last 7 weeks shows strong market share gains for Sun Pharma's specialty dermatology products in the US.", "directional_conviction": "High", "expected_margin_low": 4.5, "expected_margin_high": 8.5, "stop_loss_atr": 25.0, "invalidation_level": 1450.0, "ltp": 1520.0, "predictive_open": 1560.0},
-                {"ticker": "ARM", "exchange": "NASDAQ", "catalyst_core": "Royalty rates increasing on v9 architecture adoption.", "full_news": "Smartphone and PC OEMs rapidly shifting to Arm v9 architecture over the last 7 weeks is significantly boosting Arm's royalty revenue stream.", "directional_conviction": "High", "expected_margin_low": 8.0, "expected_margin_high": 15.0, "stop_loss_atr": 5.0, "invalidation_level": 105.0, "ltp": 125.0, "predictive_open": 133.0}
+                {"ticker": "RELIANCE", "exchange": "NSE", "catalyst_core": "Strong Q4 earnings combined with a 1-year bullish trend in new energy.", "full_news": "Reliance's massive gigafactory investments are finally coming online. 1 year of sentiment analysis show an overwhelmingly positive shift in institutional reports.", "directional_conviction": "High", "expected_margin_low": 2.5, "expected_margin_high": 4.0, "stop_loss_atr": 45.5, "invalidation_level": 2800.0, "ltp": 2850.0, "predictive_open": 2885.0},
+                {"ticker": "NVDA", "exchange": "NASDAQ", "catalyst_core": "1-year continuous easing of semiconductor supply chain, Blackwell hype.", "full_news": "TSMC confirmed ample CoWoS packaging capacity for NVIDIA's next-gen Blackwell chips. The 1-year vector analysis flags this as a critical inflection point for margins.", "directional_conviction": "High", "expected_margin_low": 4.0, "expected_margin_high": 7.5, "stop_loss_atr": 15.0, "invalidation_level": 115.0, "ltp": 120.0, "predictive_open": 124.0},
+                {"ticker": "TCS", "exchange": "NSE", "catalyst_core": "Long-term deal wins accumulating over the 1-year vector window.", "full_news": "TCS announced a $1B+ digital transformation deal in the UK. This adds to a 1-year streak of consistent deal pipelines being finalized.", "directional_conviction": "Medium", "expected_margin_low": 1.0, "expected_margin_high": 2.5, "stop_loss_atr": 30.0, "invalidation_level": 3700.0, "ltp": 3750.0, "predictive_open": 3765.0},
+                {"ticker": "AMZN", "exchange": "NASDAQ", "catalyst_core": "Project Kuiper and AWS growth compounding over the 1-year cycle.", "full_news": "Amazon's satellite internet division and accelerating AWS growth have created a solid fundamental floor over the last year.", "directional_conviction": "High", "expected_margin_low": 5.0, "expected_margin_high": 9.0, "stop_loss_atr": 8.0, "invalidation_level": 175.0, "ltp": 185.0, "predictive_open": 192.0},
+                {"ticker": "BHARTIARTL", "exchange": "NSE", "catalyst_core": "ARPU expansion solidifying after tariff hikes 1 year ago.", "full_news": "The effects of the recent tariff hikes are fully visible in the 1-year data, with ARPU expanding without significant subscriber churn.", "directional_conviction": "High", "expected_margin_low": 6.0, "expected_margin_high": 10.0, "stop_loss_atr": 20.0, "invalidation_level": 1300.0, "ltp": 1400.0, "predictive_open": 1450.0},
+                {"ticker": "AVGO", "exchange": "NASDAQ", "catalyst_core": "Custom AI silicon demand and VMWare synergy realization.", "full_news": "Broadcom's custom ASIC business is booming. The 1-year integration data of VMWare shows better-than-expected cost synergies.", "directional_conviction": "High", "expected_margin_low": 7.0, "expected_margin_high": 12.0, "stop_loss_atr": 40.0, "invalidation_level": 1400.0, "ltp": 1550.0, "predictive_open": 1620.0},
+                {"ticker": "LT", "exchange": "NSE", "catalyst_core": "Infrastructure capex execution reaching peak velocity.", "full_news": "L&T's execution speed on domestic infra projects has hit a 1-year high, ensuring strong revenue recognition for the upcoming quarter.", "directional_conviction": "High", "expected_margin_low": 4.0, "expected_margin_high": 8.0, "stop_loss_atr": 60.0, "invalidation_level": 3400.0, "ltp": 3600.0, "predictive_open": 3700.0},
+                {"ticker": "GOOGL", "exchange": "NASDAQ", "catalyst_core": "Search monetization stabilizing after initial AI overviews scare.", "full_news": "After a rocky start, Google's AI Overviews are showing stable ad click-through rates over the last year, easing investor anxiety.", "directional_conviction": "Medium", "expected_margin_low": 3.0, "expected_margin_high": 6.0, "stop_loss_atr": 6.0, "invalidation_level": 165.0, "ltp": 175.0, "predictive_open": 180.0},
+                {"ticker": "SUNPHARMA", "exchange": "NSE", "catalyst_core": "Specialty portfolio driving US revenue growth consistently.", "full_news": "Prescription data over the last year shows strong market share gains for Sun Pharma's specialty dermatology products in the US.", "directional_conviction": "High", "expected_margin_low": 4.5, "expected_margin_high": 8.5, "stop_loss_atr": 25.0, "invalidation_level": 1450.0, "ltp": 1520.0, "predictive_open": 1560.0},
+                {"ticker": "ARM", "exchange": "NASDAQ", "catalyst_core": "Royalty rates increasing on v9 architecture adoption.", "full_news": "Smartphone and PC OEMs rapidly shifting to Arm v9 architecture over the last year is significantly boosting Arm's royalty revenue stream.", "directional_conviction": "High", "expected_margin_low": 8.0, "expected_margin_high": 15.0, "stop_loss_atr": 5.0, "invalidation_level": 105.0, "ltp": 125.0, "predictive_open": 133.0}
             ],
             "bearish": [
-                {"ticker": "KOTAKBANK", "exchange": "NSE", "catalyst_core": "Management transition challenges over the 7-week period.", "full_news": "The leadership transition is causing near-term operational friction, leading to a loss of market share in high-yield segments over the 7-week window.", "directional_conviction": "High", "expected_margin_low": -5.0, "expected_margin_high": -10.0, "stop_loss_atr": 35.0, "invalidation_level": 1800.0, "ltp": 1650.0, "predictive_open": 1580.0},
-                {"ticker": "INTC", "exchange": "NASDAQ", "catalyst_core": "Server market share loss accelerating.", "full_news": "7-week data confirms AMD is rapidly capturing enterprise data center share at Intel's expense, pressuring Intel's foundry turnaround plans.", "directional_conviction": "High", "expected_margin_low": -6.0, "expected_margin_high": -12.0, "stop_loss_atr": 2.0, "invalidation_level": 34.0, "ltp": 29.0, "predictive_open": 26.50},
-                {"ticker": "UPL", "exchange": "NSE", "catalyst_core": "Global agrochemical channel destocking continues.", "full_news": "A 7-week analysis of global supply chains shows excess inventory of agrochemicals, meaning UPL will struggle to regain pricing power soon.", "directional_conviction": "Medium", "expected_margin_low": -4.0, "expected_margin_high": -8.0, "stop_loss_atr": 15.0, "invalidation_level": 550.0, "ltp": 500.0, "predictive_open": 475.0},
-                {"ticker": "SNOW", "exchange": "NASDAQ", "catalyst_core": "Consumption growth slowing as customers optimize cloud spend.", "full_news": "Snowflake is facing a 7-week trend of customers aggressively optimizing their data storage and compute spend, leading to revenue misses.", "directional_conviction": "High", "expected_margin_low": -8.0, "expected_margin_high": -15.0, "stop_loss_atr": 8.0, "invalidation_level": 160.0, "ltp": 135.0, "predictive_open": 122.0},
-                {"ticker": "PAGEIND", "exchange": "NSE", "catalyst_core": "Premium innerwear segment facing severe down-trading.", "full_news": "Consumers are shifting to cheaper alternatives amid inflation. Page Industries has seen a 7-week decline in volume growth for its premium Jockey brand.", "directional_conviction": "Medium", "expected_margin_low": -3.0, "expected_margin_high": -7.0, "stop_loss_atr": 800.0, "invalidation_level": 38000.0, "ltp": 35500.0, "predictive_open": 34200.0}
+                {"ticker": "KOTAKBANK", "exchange": "NSE", "catalyst_core": "Management transition challenges over the 1-year period.", "full_news": "The leadership transition is causing near-term operational friction, leading to a loss of market share in high-yield segments over the 1-year window.", "directional_conviction": "High", "expected_margin_low": -5.0, "expected_margin_high": -10.0, "stop_loss_atr": 35.0, "invalidation_level": 1800.0, "ltp": 1650.0, "predictive_open": 1580.0},
+                {"ticker": "INTC", "exchange": "NASDAQ", "catalyst_core": "Server market share loss accelerating.", "full_news": "1-year data confirms AMD is rapidly capturing enterprise data center share at Intel's expense, pressuring Intel's foundry turnaround plans.", "directional_conviction": "High", "expected_margin_low": -6.0, "expected_margin_high": -12.0, "stop_loss_atr": 2.0, "invalidation_level": 34.0, "ltp": 29.0, "predictive_open": 26.50},
+                {"ticker": "UPL", "exchange": "NSE", "catalyst_core": "Global agrochemical channel destocking continues.", "full_news": "A 1-year analysis of global supply chains shows excess inventory of agrochemicals, meaning UPL will struggle to regain pricing power soon.", "directional_conviction": "Medium", "expected_margin_low": -4.0, "expected_margin_high": -8.0, "stop_loss_atr": 15.0, "invalidation_level": 550.0, "ltp": 500.0, "predictive_open": 475.0},
+                {"ticker": "SNOW", "exchange": "NASDAQ", "catalyst_core": "Consumption growth slowing as customers optimize cloud spend.", "full_news": "Snowflake is facing a 1-year trend of customers aggressively optimizing their data storage and compute spend, leading to revenue misses.", "directional_conviction": "High", "expected_margin_low": -8.0, "expected_margin_high": -15.0, "stop_loss_atr": 8.0, "invalidation_level": 160.0, "ltp": 135.0, "predictive_open": 122.0},
+                {"ticker": "PAGEIND", "exchange": "NSE", "catalyst_core": "Premium innerwear segment facing severe down-trading.", "full_news": "Consumers are shifting to cheaper alternatives amid inflation. Page Industries has seen a 1-year decline in volume growth for its premium Jockey brand.", "directional_conviction": "Medium", "expected_margin_low": -3.0, "expected_margin_high": -7.0, "stop_loss_atr": 800.0, "invalidation_level": 38000.0, "ltp": 35500.0, "predictive_open": 34200.0}
             ]
         }
     }
-
-import random
-import datetime
 
 def generate_commodity_data(base_price, volatility, trend, days=100):
     data = []
@@ -116,51 +120,297 @@ def generate_commodity_data(base_price, volatility, trend, days=100):
         
     return data
 
+def map_ticker_to_yahoo(ticker: str, exchange: str) -> str:
+    if exchange in ["NSE", "BSE"]:
+        if ticker == "ZOMATO":
+            return "ETERNAL.NS"
+        elif ticker in ["LARSEN", "LT"]:
+            return "LT.NS"
+        elif ticker == "TATAMOTORS":
+            return "TMCV.NS"
+        else:
+            return f"{ticker}.NS"
+    else:
+        return ticker
+
+def fetch_live_prices(symbols_list):
+    """
+    Queries Yahoo Finance spark API in batches of 20.
+    Returns: {symbol: {'price': latest_price, 'prev_close': previous_close}}
+    """
+    data_dict = {}
+    chunk_size = 20
+    headers = {"User-Agent": "Mozilla/5.0"}
+    
+    for i in range(0, len(symbols_list), chunk_size):
+        chunk = symbols_list[i:i+chunk_size]
+        encoded_chunk = [urllib.parse.quote(sym) for sym in chunk]
+        symbols_str = ",".join(encoded_chunk)
+        url = f"https://query1.finance.yahoo.com/v8/finance/spark?symbols={symbols_str}"
+        try:
+            r = requests.get(url, headers=headers, timeout=5)
+            if r.status_code == 200:
+                res = r.json()
+                for sym, data in res.items():
+                    raw_closes = data.get("close")
+                    closes = [c for c in raw_closes if c is not None] if raw_closes is not None else []
+                    price = None
+                    if closes:
+                        price = closes[-1]
+                    elif "previousClose" in data:
+                        price = data["previousClose"]
+                    elif "chartPreviousClose" in data:
+                        price = data["chartPreviousClose"]
+                        
+                    prev_close = data.get("previousClose") or data.get("chartPreviousClose") or price
+                    if price is not None:
+                        data_dict[sym] = {
+                            "price": price,
+                            "prev_close": prev_close
+                        }
+        except Exception as e:
+            print(f"Error fetching live prices for chunk {chunk}: {e}")
+            
+    return data_dict
+
+# Short cache lock and store to deduplicate concurrent backend requests
+_cache_lock = threading.Lock()
+_last_fetch_time = 0.0
+_cached_prices = {}
+
+def get_live_prices_cached():
+    global _last_fetch_time, _cached_prices
+    now = time.time()
+    
+    with _cache_lock:
+        if _cached_prices and (now - _last_fetch_time < 5.0):
+            return _cached_prices.copy()
+            
+    # Collect all unique symbols to query
+    symbols = {"GC=F", "SI=F", "CL=F", "USDINR=X"}
+    
+    try:
+        base_picks = get_base_picks()
+        for tf in base_picks:
+            for direction in ["bullish", "bearish"]:
+                for stock in base_picks[tf][direction]:
+                    sym = map_ticker_to_yahoo(stock["ticker"], stock["exchange"])
+                    symbols.add(sym)
+                    
+        live_prices = fetch_live_prices(list(symbols))
+        
+        with _cache_lock:
+            _cached_prices = live_prices
+            _last_fetch_time = now
+            return _cached_prices.copy()
+    except Exception as e:
+        print(f"Error gathering and caching live prices: {e}")
+        return _cached_prices.copy()
+
+def apply_jitter(price: float) -> float:
+    """Adds a tiny visual fluctuation (+/- 0.03%) so the UI displays live tick changes on Sync Now."""
+    factor = 1.0 + random.uniform(-0.0003, 0.0003)
+    return round(price * factor, 2)
+
+def get_mock_picks():
+    """Returns stock picks scaled to live prices with a tiny tick jitter."""
+    try:
+        base_picks = get_base_picks()
+        live_prices = get_live_prices_cached()
+        
+        updated_picks = {}
+        for tf, tf_data in base_picks.items():
+            updated_picks[tf] = {"bullish": [], "bearish": []}
+            for direction in ["bullish", "bearish"]:
+                for stock in tf_data[direction]:
+                    s = stock.copy()
+                    sym = map_ticker_to_yahoo(s["ticker"], s["exchange"])
+                    
+                    if sym in live_prices:
+                        live_ltp = live_prices[sym]["price"]
+                        # Apply jitter for active tick visual feedback
+                        live_ltp = apply_jitter(live_ltp)
+                        
+                        mock_ltp = s["ltp"]
+                        scale = live_ltp / mock_ltp
+                        
+                        s["ltp"] = live_ltp
+                        s["predictive_open"] = round(s["predictive_open"] * scale, 2)
+                        s["invalidation_level"] = round(s["invalidation_level"] * scale, 2)
+                        s["stop_loss_atr"] = round(s["stop_loss_atr"] * scale, 2)
+                        
+                    updated_picks[tf][direction].append(s)
+        return updated_picks
+    except Exception as e:
+        print(f"Error updating picks with live data, falling back to base picks: {e}")
+        return get_base_picks()
+
 def get_mock_commodities():
-    return {
-        "gold": {
-            "name": "Gold (MCX INR/10g)",
-            "current_price": 72450.00,
-            "change": "+385.00",
-            "change_pct": "+0.53%",
-            "trend": "bullish",
-            "catalyst": "Central bank buying from emerging markets remains aggressively high. Safe-haven demand spiking ahead of key geopolitical elections.",
-            "prediction": "Bullish breakout expected above ₹72,800 resistance within the next 48 hours.",
-            "data": {
-                "1D": generate_commodity_data(72000, 0.002, 0.0005, 24),
-                "1W": generate_commodity_data(71000, 0.004, 0.001, 7), 
-                "1M": generate_commodity_data(69500, 0.006, 0.002, 30),
-                "1Y": generate_commodity_data(59000, 0.015, 0.0005, 365)
-            }
-        },
-        "silver": {
-            "name": "Silver (MCX INR/1kg)",
-            "current_price": 91200.00,
-            "change": "-1300.00",
-            "change_pct": "-1.42%",
-            "trend": "bearish",
-            "catalyst": "Industrial demand forecast cut by Chinese manufacturers. Solar panel production slowing down due to excessive inventory build-up.",
-            "prediction": "Bearish slide to test ₹90,000 psychological support level amid weak macro data.",
-            "data": {
-                "1D": generate_commodity_data(92500, 0.005, -0.001, 24),
-                "1W": generate_commodity_data(95000, 0.01, -0.002, 7),
-                "1M": generate_commodity_data(85000, 0.02, 0.001, 30),
-                "1Y": generate_commodity_data(72000, 0.03, 0.001, 365)
-            }
-        },
-        "crude_oil": {
-            "name": "Crude Oil (MCX INR/BBL)",
-            "current_price": 6620.00,
-            "change": "+140.00",
-            "change_pct": "+2.15%",
-            "trend": "bullish",
-            "catalyst": "OPEC+ extends voluntary production cuts into Q4. Geopolitical tensions in the Middle East threatening key supply routes.",
-            "prediction": "Bullish momentum likely to test ₹6,800 resistance levels if supply constraints persist.",
-            "data": {
-                "1D": generate_commodity_data(6480, 0.003, 0.001, 24),
-                "1W": generate_commodity_data(6550, 0.008, 0.002, 7),
-                "1M": generate_commodity_data(6200, 0.015, 0.001, 30),
-                "1Y": generate_commodity_data(5800, 0.02, 0.0005, 365)
+    """Returns commodities mapped to live USD rates and converted to Indian Rupees (INR) with MCX premiums."""
+    try:
+        live_prices = get_live_prices_cached()
+        
+        # Extract prices or fall back to baseline values
+        gold_usd = live_prices.get("GC=F", {}).get("price", 4238.8)
+        prev_gold_usd = live_prices.get("GC=F", {}).get("prev_close", 4114.0)
+        
+        silver_usd = live_prices.get("SI=F", {}).get("price", 67.974)
+        prev_silver_usd = live_prices.get("SI=F", {}).get("prev_close", 64.001)
+        
+        crude_usd = live_prices.get("CL=F", {}).get("price", 84.88)
+        prev_crude_usd = live_prices.get("CL=F", {}).get("prev_close", 87.71)
+        
+        usdinr = live_prices.get("USDINR=X", {}).get("price", 95.10)
+        prev_usdinr = live_prices.get("USDINR=X", {}).get("prev_close", 95.75)
+        
+        # Convert to MCX INR contract standards
+        gold_inr = round((gold_usd * usdinr / 31.1034768) * 10 * 1.16, 2)
+        prev_gold_inr = round((prev_gold_usd * prev_usdinr / 31.1034768) * 10 * 1.16, 2)
+        
+        silver_inr = round(silver_usd * usdinr * 32.1507 * 1.19, 2)
+        prev_silver_inr = round(prev_silver_usd * prev_usdinr * 32.1507 * 1.19, 2)
+        
+        crude_inr = round(crude_usd * usdinr * 1.02, 2)
+        prev_crude_inr = round(prev_crude_usd * prev_usdinr * 1.02, 2)
+        
+        # Apply jitter for active tick visual feedback on refresh/sync
+        gold_inr = apply_jitter(gold_inr)
+        silver_inr = apply_jitter(silver_inr)
+        crude_inr = apply_jitter(crude_inr)
+        
+        # Calculate rates change and trends
+        gold_change = gold_inr - prev_gold_inr
+        gold_pct = (gold_change / prev_gold_inr) * 100
+        gold_trend = "bullish" if gold_change >= 0 else "bearish"
+        
+        silver_change = silver_inr - prev_silver_inr
+        silver_pct = (silver_change / prev_silver_inr) * 100
+        silver_trend = "bullish" if silver_change >= 0 else "bearish"
+        
+        crude_change = crude_inr - prev_crude_inr
+        crude_pct = (crude_change / prev_crude_inr) * 100
+        crude_trend = "bullish" if crude_change >= 0 else "bearish"
+        
+        # Format values
+        gold_change_str = f"+{gold_change:.2f}" if gold_change >= 0 else f"{gold_change:.2f}"
+        gold_pct_str = f"+{gold_pct:.2f}%" if gold_pct >= 0 else f"{gold_pct:.2f}%"
+        
+        silver_change_str = f"+{silver_change:.2f}" if silver_change >= 0 else f"{silver_change:.2f}"
+        silver_pct_str = f"+{silver_pct:.2f}%" if silver_pct >= 0 else f"{silver_pct:.2f}%"
+        
+        crude_change_str = f"+{crude_change:.2f}" if crude_change >= 0 else f"{crude_change:.2f}"
+        crude_pct_str = f"+{crude_pct:.2f}%" if crude_pct >= 0 else f"{crude_pct:.2f}%"
+        
+        # Generate predictions dynamically
+        if gold_trend == "bullish":
+            gold_pred = f"Bullish breakout expected above ₹{int(round(gold_inr * 1.005, -2)):,} resistance within the next 48 hours."
+        else:
+            gold_pred = f"Bearish slide to test ₹{int(round(gold_inr * 0.995, -2)):,} psychological support level amid weak macro data."
+            
+        if silver_trend == "bullish":
+            silver_pred = f"Bullish breakout expected above ₹{int(round(silver_inr * 1.01, -3)):,} resistance within the next 48 hours."
+        else:
+            silver_pred = f"Bearish slide to test ₹{int(round(silver_inr * 0.99, -3)):,} psychological support level amid weak macro data."
+            
+        if crude_trend == "bullish":
+            crude_pred = f"Bullish momentum likely to test ₹{int(round(crude_inr * 1.02, -1)):,} resistance levels if supply constraints persist."
+        else:
+            crude_pred = f"Bearish momentum likely to test ₹{int(round(crude_inr * 0.98, -1)):,} support levels if supply pressure persists."
+            
+        return {
+            "gold": {
+                "name": "Gold (MCX INR/10g)",
+                "current_price": gold_inr,
+                "change": gold_change_str,
+                "change_pct": gold_pct_str,
+                "trend": gold_trend,
+                "catalyst": "Central bank buying from emerging markets remains aggressively high. Safe-haven demand spiking ahead of key geopolitical elections.",
+                "prediction": gold_pred,
+                "data": {
+                    "1D": generate_commodity_data(gold_inr, 0.002, 0.0005, 24),
+                    "1W": generate_commodity_data(gold_inr, 0.004, 0.001, 7), 
+                    "1M": generate_commodity_data(gold_inr, 0.006, 0.002, 30),
+                    "1Y": generate_commodity_data(gold_inr, 0.015, 0.0005, 365)
+                }
+            },
+            "silver": {
+                "name": "Silver (MCX INR/1kg)",
+                "current_price": silver_inr,
+                "change": silver_change_str,
+                "change_pct": silver_pct_str,
+                "trend": silver_trend,
+                "catalyst": "Industrial demand forecast cut by Chinese manufacturers. Solar panel production slowing down due to excessive inventory build-up.",
+                "prediction": silver_pred,
+                "data": {
+                    "1D": generate_commodity_data(silver_inr, 0.005, -0.001, 24),
+                    "1W": generate_commodity_data(silver_inr, 0.01, -0.002, 7),
+                    "1M": generate_commodity_data(silver_inr, 0.02, 0.001, 30),
+                    "1Y": generate_commodity_data(silver_inr, 0.03, 0.001, 365)
+                }
+            },
+            "crude_oil": {
+                "name": "Crude Oil (MCX INR/BBL)",
+                "current_price": crude_inr,
+                "change": crude_change_str,
+                "change_pct": crude_pct_str,
+                "trend": crude_trend,
+                "catalyst": "OPEC+ extends voluntary production cuts into Q4. Geopolitical tensions in the Middle East threatening key supply routes.",
+                "prediction": crude_pred,
+                "data": {
+                    "1D": generate_commodity_data(crude_inr, 0.003, 0.001, 24),
+                    "1W": generate_commodity_data(crude_inr, 0.008, 0.002, 7),
+                    "1M": generate_commodity_data(crude_inr, 0.015, 0.001, 30),
+                    "1Y": generate_commodity_data(crude_inr, 0.02, 0.0005, 365)
+                }
             }
         }
-    }
+    except Exception as e:
+        print(f"Error fetching live commodities, returning fallback values: {e}")
+        # Default mock fallback to ensure the app never crashes
+        return {
+            "gold": {
+                "name": "Gold (MCX INR/10g)",
+                "current_price": 149650.00,
+                "change": "+385.00",
+                "change_pct": "+0.26%",
+                "trend": "bullish",
+                "catalyst": "Central bank buying from emerging markets remains aggressively high. Safe-haven demand spiking ahead of key geopolitical elections.",
+                "prediction": "Bullish breakout expected above ₹150,500 resistance within the next 48 hours.",
+                "data": {
+                    "1D": generate_commodity_data(149650, 0.002, 0.0005, 24),
+                    "1W": generate_commodity_data(149000, 0.004, 0.001, 7), 
+                    "1M": generate_commodity_data(145000, 0.006, 0.002, 30),
+                    "1Y": generate_commodity_data(135000, 0.015, 0.0005, 365)
+                }
+            },
+            "silver": {
+                "name": "Silver (MCX INR/1kg)",
+                "current_price": 247200.00,
+                "change": "-1300.00",
+                "change_pct": "-0.52%",
+                "trend": "bearish",
+                "catalyst": "Industrial demand forecast cut by Chinese manufacturers. Solar panel production slowing down due to excessive inventory build-up.",
+                "prediction": "Bearish slide to test ₹245,000 psychological support level amid weak macro data.",
+                "data": {
+                    "1D": generate_commodity_data(247200, 0.005, -0.001, 24),
+                    "1W": generate_commodity_data(250000, 0.01, -0.002, 7),
+                    "1M": generate_commodity_data(240000, 0.02, 0.001, 30),
+                    "1Y": generate_commodity_data(220000, 0.03, 0.001, 365)
+                }
+            },
+            "crude_oil": {
+                "name": "Crude Oil (MCX INR/BBL)",
+                "current_price": 6620.00,
+                "change": "+140.00",
+                "change_pct": "+2.15%",
+                "trend": "bullish",
+                "catalyst": "OPEC+ extends voluntary production cuts into Q4. Geopolitical tensions in the Middle East threatening key supply routes.",
+                "prediction": "Bullish momentum likely to test ₹6,800 resistance levels if supply constraints persist.",
+                "data": {
+                    "1D": generate_commodity_data(6480, 0.003, 0.001, 24),
+                    "1W": generate_commodity_data(6550, 0.008, 0.002, 7),
+                    "1M": generate_commodity_data(6200, 0.015, 0.001, 30),
+                    "1Y": generate_commodity_data(5800, 0.02, 0.0005, 365)
+                }
+            }
+        }
