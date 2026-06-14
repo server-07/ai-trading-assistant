@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import { Activity, TrendingUp, TrendingDown, DollarSign, IndianRupee, AlertTriangle, Globe, MapPin, Clock, Info, X } from "lucide-react";
+import { Activity, TrendingUp, TrendingDown, DollarSign, IndianRupee, AlertTriangle, Globe, MapPin, Clock, Info, X, RefreshCw } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
 interface Pick {
@@ -32,6 +32,7 @@ export default function Dashboard() {
   const [timeframe, setTimeframe] = useState("1Y");
   const [region, setRegion] = useState("ALL");
   const [selectedNews, setSelectedNews] = useState<{ticker: string, news: string} | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     // Fetch picks based on filters
@@ -63,7 +64,7 @@ export default function Dashboard() {
     };
     
     fetchPicks();
-  }, [region, timeframe]);
+  }, [region, timeframe, refreshTrigger]);
 
   useEffect(() => {
     let s: Socket;
@@ -161,6 +162,12 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center justify-between sm:justify-start gap-3 sm:ml-2 sm:border-l border-white/10 sm:pl-6 h-10 w-full sm:w-auto">
+            <button 
+              onClick={() => setRefreshTrigger(prev => prev + 1)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 border border-indigo-500/30 rounded-lg text-xs font-bold transition-all"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Sync Now
+            </button>
             <div className="flex items-center gap-3">
               <span className="relative flex h-3 w-3">
                 {isConnected && (
@@ -220,7 +227,7 @@ export default function Dashboard() {
         <div className="md:hidden">
           {activeSection === 'bullish' && <PicksTable picks={bullishPicks} isBearish={false} setSelectedNews={setSelectedNews} />}
           {activeSection === 'bearish' && <PicksTable picks={bearishPicks} isBearish={true} setSelectedNews={setSelectedNews} />}
-          {activeSection === 'commodities' && <CommoditiesSection />}
+          {activeSection === 'commodities' && <CommoditiesSection refreshTrigger={refreshTrigger} />}
         </div>
 
         {/* Desktop rendering logic (Commodities always visible, toggle between bull/bear tables) */}
@@ -230,7 +237,7 @@ export default function Dashboard() {
           ) : (
             <PicksTable picks={bearishPicks} isBearish={true} setSelectedNews={setSelectedNews} />
           )}
-          <CommoditiesSection />
+          <CommoditiesSection refreshTrigger={refreshTrigger} />
         </div>
       </div>
 

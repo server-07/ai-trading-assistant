@@ -27,7 +27,7 @@ interface CommoditiesResponse {
   crude_oil: CommodityData;
 }
 
-export default function CommoditiesSection() {
+export default function CommoditiesSection({ refreshTrigger }: { refreshTrigger?: number }) {
   const [data, setData] = useState<CommoditiesResponse | null>(null);
   const [goldTimeframe, setGoldTimeframe] = useState<"1D" | "1W" | "1M" | "1Y">("1M");
   const [silverTimeframe, setSilverTimeframe] = useState<"1D" | "1W" | "1M" | "1Y">("1M");
@@ -58,7 +58,7 @@ export default function CommoditiesSection() {
       }
     };
     fetchData();
-  }, []);
+  }, [refreshTrigger]);
 
   if (!data) return null;
 
