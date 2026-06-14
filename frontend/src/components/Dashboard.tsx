@@ -34,7 +34,10 @@ export default function Dashboard() {
       try {
         const supabase = createClient();
         const { data: { session } } = await supabase.auth.getSession();
-        const token = session?.access_token;
+        
+        // BYPASS LOGIC
+        const isBypass = document.cookie.includes('bypass_auth=true');
+        const token = isBypass ? "server_bypass_token" : session?.access_token;
 
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
         const res = await fetch(`${baseUrl}/api/picks?region=${region}&timeframe=${timeframe}`, {
@@ -63,7 +66,10 @@ export default function Dashboard() {
     const initSocket = async () => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      
+      // BYPASS LOGIC
+      const isBypass = document.cookie.includes('bypass_auth=true');
+      const token = isBypass ? "server_bypass_token" : session?.access_token;
 
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       s = io(baseUrl, {
