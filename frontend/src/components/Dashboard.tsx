@@ -26,6 +26,7 @@ import CommoditiesSection from "./CommoditiesSection";
 export default function Dashboard() {
   const [bullishPicks, setBullishPicks] = useState<Pick[]>([]);
   const [bearishPicks, setBearishPicks] = useState<Pick[]>([]);
+  const [activeSection, setActiveSection] = useState<'bullish' | 'bearish' | 'commodities'>('bullish');
   const [isConnected, setIsConnected] = useState(false);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [timeframe, setTimeframe] = useState("7W");
@@ -175,23 +176,63 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Bullish Picks Section */}
+      {/* Desktop Tabs */}
+      <div className="hidden md:flex gap-4 mb-6">
+        <button 
+          onClick={() => setActiveSection('bullish')}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeSection !== 'bearish' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10'}`}
+        >
+          <TrendingUp className="w-5 h-5" /> Bullish Catalysts
+        </button>
+        <button 
+          onClick={() => setActiveSection('bearish')}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeSection === 'bearish' ? 'bg-red-500/20 text-red-400 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10'}`}
+        >
+          <TrendingDown className="w-5 h-5" /> Bearish Catalysts
+        </button>
+      </div>
+
+      {/* Mobile Tabs */}
+      <div className="md:hidden flex w-full gap-2 mb-6 p-1 bg-black/40 border border-white/10 rounded-2xl">
+        <button 
+          onClick={() => setActiveSection('bullish')}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-all ${activeSection === 'bullish' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-md' : 'text-zinc-400 hover:text-white'}`}
+        >
+          <TrendingUp className="w-5 h-5 sm:w-4 sm:h-4" /> Bullish
+        </button>
+        <button 
+          onClick={() => setActiveSection('bearish')}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-all ${activeSection === 'bearish' ? 'bg-red-500/20 text-red-400 border border-red-500/30 shadow-md' : 'text-zinc-400 hover:text-white'}`}
+        >
+          <TrendingDown className="w-5 h-5 sm:w-4 sm:h-4" /> Bearish
+        </button>
+        <button 
+          onClick={() => setActiveSection('commodities')}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-all ${activeSection === 'commodities' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 shadow-md' : 'text-zinc-400 hover:text-white'}`}
+        >
+          <Activity className="w-5 h-5 sm:w-4 sm:h-4" /> Macro
+        </button>
+      </div>
+
+      {/* Content Area */}
       <div className="mb-8">
-        <h2 className="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5" /> Bullish Catalysts (Long Opportunities)
-        </h2>
-        <PicksTable picks={bullishPicks} isBearish={false} setSelectedNews={setSelectedNews} />
-      </div>
+        {/* Mobile rendering logic */}
+        <div className="md:hidden">
+          {activeSection === 'bullish' && <PicksTable picks={bullishPicks} isBearish={false} setSelectedNews={setSelectedNews} />}
+          {activeSection === 'bearish' && <PicksTable picks={bearishPicks} isBearish={true} setSelectedNews={setSelectedNews} />}
+          {activeSection === 'commodities' && <CommoditiesSection />}
+        </div>
 
-      {/* Bearish Picks Section */}
-      <div className="mb-4">
-        <h2 className="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
-          <TrendingDown className="w-5 h-5" /> Bearish Catalysts (Short Opportunities)
-        </h2>
-        <PicksTable picks={bearishPicks} isBearish={true} setSelectedNews={setSelectedNews} />
+        {/* Desktop rendering logic (Commodities always visible, toggle between bull/bear tables) */}
+        <div className="hidden md:block">
+          {activeSection !== 'bearish' ? (
+            <PicksTable picks={bullishPicks} isBearish={false} setSelectedNews={setSelectedNews} />
+          ) : (
+            <PicksTable picks={bearishPicks} isBearish={true} setSelectedNews={setSelectedNews} />
+          )}
+          <CommoditiesSection />
+        </div>
       </div>
-
-      <CommoditiesSection />
 
       {/* News Modal */}
       {selectedNews && (

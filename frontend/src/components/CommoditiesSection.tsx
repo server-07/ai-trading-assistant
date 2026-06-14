@@ -175,7 +175,7 @@ function CommodityCard({
         <div>
           <h3 className={`text-xl font-bold ${colors.text}`}>{commodity.name}</h3>
           <div className="flex items-center gap-3 mt-2">
-            <span className="text-2xl font-mono text-white">${commodity.current_price.toFixed(2)}</span>
+            <span className="text-2xl font-mono text-white">₹{commodity.current_price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             <div className={`flex flex-col text-sm font-mono ${isBullish ? 'text-emerald-400' : 'text-red-400'}`}>
               <span className="flex items-center gap-1">
                 {isBullish ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}

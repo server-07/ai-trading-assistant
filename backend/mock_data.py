@@ -120,33 +120,33 @@ def generate_commodity_data(base_price, volatility, trend):
 def get_mock_commodities():
     return {
         "gold": {
-            "name": "Gold (XAU/USD)",
-            "current_price": 2345.50,
-            "change": "+12.40",
+            "name": "Gold (MCX INR/10g)",
+            "current_price": 72450.00,
+            "change": "+385.00",
             "change_pct": "+0.53%",
             "trend": "bullish",
             "catalyst": "Central bank buying from emerging markets remains aggressively high. Safe-haven demand spiking ahead of key geopolitical elections.",
-            "prediction": "Bullish breakout expected above $2350 resistance within the next 48 hours.",
+            "prediction": "Bullish breakout expected above ₹72,800 resistance within the next 48 hours.",
             "data": {
-                "1D": generate_commodity_data(2330, 0.002, 0.0005)[-24:], # Hourly representation
-                "1W": generate_commodity_data(2300, 0.004, 0.001)[-7:], 
-                "1M": generate_commodity_data(2250, 0.006, 0.002)[-30:],
-                "1Y": generate_commodity_data(1950, 0.015, 0.0005)
+                "1D": generate_commodity_data(72000, 0.002, 0.0005)[-24:],
+                "1W": generate_commodity_data(71000, 0.004, 0.001)[-7:], 
+                "1M": generate_commodity_data(69500, 0.006, 0.002)[-30:],
+                "1Y": generate_commodity_data(59000, 0.015, 0.0005)
             }
         },
         "silver": {
-            "name": "Silver (XAG/USD)",
-            "current_price": 31.20,
-            "change": "-0.45",
+            "name": "Silver (MCX INR/1kg)",
+            "current_price": 91200.00,
+            "change": "-1300.00",
             "change_pct": "-1.42%",
             "trend": "bearish",
             "catalyst": "Industrial demand forecast cut by Chinese manufacturers. Solar panel production slowing down due to excessive inventory build-up.",
-            "prediction": "Bearish slide to test $30.00 psychological support level amid weak macro data.",
+            "prediction": "Bearish slide to test ₹90,000 psychological support level amid weak macro data.",
             "data": {
-                "1D": generate_commodity_data(31.65, 0.005, -0.001)[-24:],
-                "1W": generate_commodity_data(32.50, 0.01, -0.002)[-7:],
-                "1M": generate_commodity_data(29.00, 0.02, 0.001)[-30:],
-                "1Y": generate_commodity_data(24.00, 0.03, 0.001)
+                "1D": generate_commodity_data(92500, 0.005, -0.001)[-24:],
+                "1W": generate_commodity_data(95000, 0.01, -0.002)[-7:],
+                "1M": generate_commodity_data(85000, 0.02, 0.001)[-30:],
+                "1Y": generate_commodity_data(72000, 0.03, 0.001)
             }
         }
     }
