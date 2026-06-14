@@ -64,14 +64,14 @@ def on_startup():
 def health_check():
     return {"status": "ok"}
 
-from mock_data import get_mock_picks, get_mock_commodities
+from market_data_service import get_mock_picks as fetch_live_picks, get_mock_commodities as fetch_live_commodities
 
 @app.get("/api/picks")
-def get_daily_picks(region: str = "ALL", timeframe: str = "7W", db: Session = Depends(get_db), current_user: Profile = Depends(get_current_approved_user)):
-    mock_data = get_mock_picks()
+def get_daily_picks(region: str = "ALL", timeframe: str = "1Y", db: Session = Depends(get_db), current_user: Profile = Depends(get_current_approved_user)):
+    picks = fetch_live_picks()
     
     # Get picks for timeframe
-    timeframe_picks = mock_data.get(timeframe, mock_data["7W"])
+    timeframe_picks = picks.get(timeframe, picks["1Y"])
     bullish_picks = timeframe_picks["bullish"]
     bearish_picks = timeframe_picks["bearish"]
     
@@ -90,7 +90,7 @@ def get_daily_picks(region: str = "ALL", timeframe: str = "7W", db: Session = De
 
 @app.get("/api/commodities")
 def get_commodities(current_user: Profile = Depends(get_current_approved_user)):
-    return get_mock_commodities()
+    return fetch_live_commodities()
 
 @sio.event
 async def connect(sid, environ, auth):

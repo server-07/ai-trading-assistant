@@ -196,8 +196,8 @@ function CommodityCard({
     <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl flex flex-col">
       {/* Header */}
       <div className="p-6 border-b border-white/10 flex flex-col sm:flex-row sm:justify-between items-start gap-4">
-        <div>
-          <h3 className={`text-xl font-bold ${colors.text}`}>{commodity.name}</h3>
+        <div className="min-w-0">
+          <h3 className={`text-xl font-bold truncate ${colors.text}`}>{commodity.name}</h3>
           <div className="flex items-center gap-3 mt-2">
             <span className="text-2xl font-mono text-white">₹{commodity.current_price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             <div className={`flex flex-col text-sm font-mono ${isBullish ? 'text-emerald-400' : 'text-red-400'}`}>
