@@ -145,9 +145,13 @@ function CommodityCard({
     if (!chartContainerRef.current || !commodity) return;
 
     const handleResize = () => {
-      chartRef.current?.applyOptions({ width: chartContainerRef.current?.clientWidth });
+      chartRef.current?.applyOptions({ 
+        width: chartContainerRef.current?.clientWidth,
+        height: window.innerWidth < 768 ? 220 : 300
+      });
     };
 
+    const isMobile = window.innerWidth < 768;
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
@@ -164,7 +168,7 @@ function CommodityCard({
         minimumWidth: 110,
       },
       width: chartContainerRef.current.clientWidth,
-      height: 300,
+      height: isMobile ? 220 : 300,
       timeScale: {
         timeVisible: true,
         secondsVisible: false,
@@ -193,16 +197,16 @@ function CommodityCard({
   }, [commodity, timeframe]);
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl flex flex-col">
+    <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl flex flex-col">
       {/* Header */}
-      <div className="p-6 border-b border-white/10 flex flex-col sm:flex-row sm:justify-between items-start gap-4">
+      <div className="p-3.5 sm:p-6 border-b border-white/10 flex flex-col sm:flex-row sm:justify-between items-start gap-3 sm:gap-4">
         <div className="min-w-0">
-          <h3 className={`text-xl font-bold truncate ${colors.text}`}>{commodity.name}</h3>
-          <div className="flex items-center gap-3 mt-2">
-            <span className="text-2xl font-mono text-white">₹{commodity.current_price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            <div className={`flex flex-col text-sm font-mono ${isBullish ? 'text-emerald-400' : 'text-red-400'}`}>
-              <span className="flex items-center gap-1">
-                {isBullish ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+          <h3 className={`text-base sm:text-xl font-bold truncate ${colors.text}`}>{commodity.name}</h3>
+          <div className="flex items-center gap-2.5 mt-1.5">
+            <span className="text-xl sm:text-2xl font-mono text-white">₹{commodity.current_price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <div className={`flex flex-col text-[10px] sm:text-sm font-mono leading-none ${isBullish ? 'text-emerald-400' : 'text-red-400'}`}>
+              <span className="flex items-center gap-0.5">
+                {isBullish ? <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" /> : <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4" />}
                 {commodity.change.replace(/[+-]/, match => match + '₹')}
               </span>
               <span>{commodity.change_pct}</span>
@@ -215,7 +219,7 @@ function CommodityCard({
             <button 
               key={t}
               onClick={() => setTimeframe(t as any)}
-              className={`flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${timeframe === t ? `${colors.bg} ${colors.text} shadow-md` : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
+              className={`flex-1 sm:flex-none flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg transition-all ${timeframe === t ? `${colors.bg} ${colors.text} shadow-md` : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
             >
               {t}
             </button>
@@ -224,28 +228,28 @@ function CommodityCard({
       </div>
 
       {/* Chart */}
-      <div className="w-full h-[300px] p-4 bg-black/20" ref={chartContainerRef} />
+      <div className="w-full h-[220px] sm:h-[300px] p-2 sm:p-4 bg-black/20" ref={chartContainerRef} />
 
       {/* Catalyst News */}
-      <div className="p-6 bg-black/40 border-t border-white/10 flex-1 flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 text-zinc-400 text-xs uppercase tracking-wider font-bold">
-            <Info className="w-4 h-4" />
+      <div className="p-3.5 sm:p-6 bg-black/40 border-t border-white/10 flex-1 flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col gap-1 sm:gap-2">
+          <div className="flex items-center gap-1.5 text-zinc-400 text-[9px] sm:text-xs uppercase tracking-wider font-bold">
+            <Info className="w-3.5 h-3.5" />
             Rate Prediction News
           </div>
-          <p className="text-sm text-zinc-300 leading-relaxed">
+          <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
             {commodity.catalyst}
           </p>
         </div>
 
-        <div className={`mt-auto p-4 rounded-xl border ${isBullish ? 'bg-emerald-950/20 border-emerald-900/30' : 'bg-red-950/20 border-red-900/30'}`}>
-          <div className="flex items-center gap-2 mb-1">
-            {isBullish ? <TrendingUp className="w-4 h-4 text-emerald-400" /> : <TrendingDown className="w-4 h-4 text-red-400" />}
-            <span className={`text-xs uppercase tracking-wider font-bold ${isBullish ? 'text-emerald-500' : 'text-red-500'}`}>
+        <div className={`mt-auto p-3 sm:p-4 rounded-xl border ${isBullish ? 'bg-emerald-950/20 border-emerald-900/30' : 'bg-red-950/20 border-red-900/30'}`}>
+          <div className="flex items-center gap-1.5 mb-1">
+            {isBullish ? <TrendingUp className="w-3.5 h-3.5 text-emerald-400" /> : <TrendingDown className="w-3.5 h-3.5 text-red-400" />}
+            <span className={`text-[9px] sm:text-xs uppercase tracking-wider font-bold ${isBullish ? 'text-emerald-500' : 'text-red-500'}`}>
               AI Vector Prediction
             </span>
           </div>
-          <p className={`text-sm ${isBullish ? 'text-emerald-400' : 'text-red-400'}`}>
+          <p className={`text-xs sm:text-sm ${isBullish ? 'text-emerald-400' : 'text-red-400'}`}>
             {commodity.prediction}
           </p>
         </div>

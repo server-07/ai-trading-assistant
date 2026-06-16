@@ -79,7 +79,7 @@ def get_daily_picks(region: str = "ALL", timeframe: str = "1Y", db: Session = De
     if region == "INDIA":
         bullish_picks = [p for p in bullish_picks if p["exchange"] in ["NSE", "BSE"]]
         bearish_picks = [p for p in bearish_picks if p["exchange"] in ["NSE", "BSE"]]
-    elif region == "WORLD":
+    elif region in ["WORLD", "NASDAQ"]:
         bullish_picks = [p for p in bullish_picks if p["exchange"] not in ["NSE", "BSE"]]
         bearish_picks = [p for p in bearish_picks if p["exchange"] not in ["NSE", "BSE"]]
         
@@ -91,6 +91,56 @@ def get_daily_picks(region: str = "ALL", timeframe: str = "1Y", db: Session = De
 @app.get("/api/commodities")
 def get_commodities(current_user: Profile = Depends(get_current_approved_user)):
     return fetch_live_commodities()
+
+@app.get("/api/news")
+def get_news(region: str = "ALL", timeframe: str = "1Y", db: Session = Depends(get_db), current_user: Profile = Depends(get_current_approved_user)):
+    from market_data_service import get_live_news
+    # Try querying from database first
+    articles = []
+    try:
+        from database import NewsArticle
+        from datetime import datetime, timezone, timedelta
+        query = db.query(NewsArticle)
+        now = datetime.now(timezone.utc)
+        if timeframe == "1D":
+            query = query.filter(NewsArticle.published_at >= now - timedelta(days=1))
+        elif timeframe == "1W":
+            query = query.filter(NewsArticle.published_at >= now - timedelta(days=7))
+        elif timeframe == "1M":
+            query = query.filter(NewsArticle.published_at >= now - timedelta(days=30))
+        elif timeframe == "1Y":
+            query = query.filter(NewsArticle.published_at >= now - timedelta(days=365))
+            
+        # Filter by region
+        target_region = "NASDAQ" if region in ["WORLD", "NASDAQ"] else region
+        if target_region == "INDIA":
+            # Simple check for Indian tickers or sources
+            query = query.filter(NewsArticle.title.ilike("%india%") | NewsArticle.content.ilike("%india%") | NewsArticle.source.ilike("%moneycontrol%") | NewsArticle.source.ilike("%times%"))
+        elif target_region == "NASDAQ":
+            # Simple check for US tickers or sources
+            query = query.filter(~(NewsArticle.source.ilike("%moneycontrol%") | NewsArticle.source.ilike("%times%")))
+            
+        articles = query.order_by(NewsArticle.published_at.desc()).limit(15).all()
+        # Convert DB models to JSON serializable structures
+        articles = [
+            {
+                "id": str(a.id),
+                "title": a.title,
+                "content": a.content,
+                "source": a.source,
+                "published_at": a.published_at.isoformat() if a.published_at else "",
+                "sentiment_score": a.sentiment_score,
+                "tickers": a.entities.get("tickers", []) if a.entities else []
+            } for a in articles
+        ]
+    except Exception as e:
+        print(f"Error querying DB news: {e}")
+        articles = []
+        
+    if not articles:
+        articles = get_live_news(region, timeframe)
+        
+    return articles
 
 @sio.event
 async def connect(sid, environ, auth):

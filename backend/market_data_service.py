@@ -414,3 +414,151 @@ def get_mock_commodities():
                 }
             }
         }
+
+def get_live_news(region: str = "ALL", timeframe: str = "1Y"):
+    all_news = [
+        {
+            "id": "news-1",
+            "title": "Reliance Industries green hydrogen project clears final regulatory approval",
+            "content": "Reliance Industries' ambitious green energy initiative has received approval from the state government of Gujarat, clearing the path for phase 1 of its massive gigafactory complex.",
+            "source": "Moneycontrol",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": 0.8,
+            "tickers": ["RELIANCE"],
+            "region": "INDIA",
+            "timeframe": "1Y"
+        },
+        {
+            "id": "news-2",
+            "title": "NVIDIA Blackwell Ultra GPU orders surge by 20% in supply chain checks",
+            "content": "Supply chain assessments in Taiwan show a significant uptick in orders for TSMC's CoWoS packaging, specifically allocated to NVIDIA's next-generation Blackwell Ultra chips.",
+            "source": "Bloomberg",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(hours=4)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": 0.95,
+            "tickers": ["NVDA"],
+            "region": "NASDAQ",
+            "timeframe": "1Y"
+        },
+        {
+            "id": "news-3",
+            "title": "Blinkit daily order volumes surpass 1.8 million in metros",
+            "content": "Zomato's quick commerce division Blinkit has recorded record-breaking order numbers in key metro areas, outperforming traditional retail channels.",
+            "source": "Economic Times",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(hours=6)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": 0.85,
+            "tickers": ["ZOMATO"],
+            "region": "INDIA",
+            "timeframe": "1W"
+        },
+        {
+            "id": "news-4",
+            "title": "Tesla gains regulatory clearance for FSD test fleet in Shanghai",
+            "content": "Tesla has secured a pilot license to test its Full Self-Driving software on public roads in Shanghai, marking a major milestone for its international autonomy strategy.",
+            "source": "Reuters",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(hours=8)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": 0.75,
+            "tickers": ["TSLA"],
+            "region": "NASDAQ",
+            "timeframe": "1W"
+        },
+        {
+            "id": "news-5",
+            "title": "RBI keeps interest rates unchanged at 6.5% to check food inflation",
+            "content": "The Reserve Bank of India's Monetary Policy Committee has voted to hold repo rates steady, maintaining a hawk-eyed stance on consumer price indexes.",
+            "source": "CNBC-TV18",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(hours=10)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": 0.1,
+            "tickers": ["HDFCBANK", "SBIN"],
+            "region": "INDIA",
+            "timeframe": "1D"
+        },
+        {
+            "id": "news-6",
+            "title": "Federal Reserve officials hint at persistent high rates as jobs data remains hot",
+            "content": "U.S. labor statistics show stronger-than-expected job creation, prompting several Federal Reserve presidents to suggest that interest rate cuts may be delayed.",
+            "source": "Wall Street Journal",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(hours=12)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": -0.4,
+            "tickers": ["AAPL", "MSFT", "GOOGL"],
+            "region": "NASDAQ",
+            "timeframe": "1D"
+        },
+        {
+            "id": "news-7",
+            "title": "Tata Motors passenger vehicle sales drop by 5% in monthly dispatch metrics",
+            "content": "Tata Motors reported a mild contraction in domestic dispatches for passenger cars, citing higher dealer inventories and normal seasonal cooling in urban markets.",
+            "source": "Business Standard",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(hours=14)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": -0.35,
+            "tickers": ["TATAMOTORS"],
+            "region": "INDIA",
+            "timeframe": "1M"
+        },
+        {
+            "id": "news-8",
+            "title": "Intel delays Ohio factory completion due to market demand shift",
+            "content": "Intel Corp has extended the construction schedule of its leading-edge semiconductor site in Ohio, citing lower demand for PC client processors.",
+            "source": "TechCrunch",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(hours=18)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": -0.6,
+            "tickers": ["INTC"],
+            "region": "NASDAQ",
+            "timeframe": "1M"
+        },
+        {
+            "id": "news-9",
+            "title": "HDFC Bank credit card additions speed up in latest fiscal report",
+            "content": "India's largest private lender reported solid metrics in digital acquisition channels, helping maintain its market share in the high-yield credit space.",
+            "source": "Financial Express",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(days=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": 0.65,
+            "tickers": ["HDFCBANK"],
+            "region": "INDIA",
+            "timeframe": "1W"
+        },
+        {
+            "id": "news-10",
+            "title": "Apple Intelligence developers seed first beta containing advanced agents",
+            "content": "Apple has quietly released developer betas containing the first iteration of on-device Siri tools equipped with localized large language models.",
+            "source": "MacRumors",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(days=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": 0.7,
+            "tickers": ["AAPL"],
+            "region": "NASDAQ",
+            "timeframe": "1W"
+        },
+        {
+            "id": "news-11",
+            "title": "Indian government increases budget allocation for clean energy grid upgrades",
+            "content": "The central government has cleared fresh funding to upgrade power transmission lines, a move expected to benefit utility and grid equipment companies like NTPC and BHEL.",
+            "source": "Mint",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(days=15)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": 0.78,
+            "tickers": ["NTPC", "BHEL"],
+            "region": "INDIA",
+            "timeframe": "1M"
+        },
+        {
+            "id": "news-12",
+            "title": "Microsoft Copilot subscription renewals achieve 88% retention rate in survey",
+            "content": "Enterprise feedback indicates high stickiness for Microsoft's AI productivity tool, alleviating investor concerns over long-term SaaS monetization.",
+            "source": "Wired",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(days=20)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": 0.82,
+            "tickers": ["MSFT"],
+            "region": "NASDAQ",
+            "timeframe": "1M"
+        }
+    ]
+    
+    target_region = "NASDAQ" if region in ["WORLD", "NASDAQ"] else region
+    filtered = all_news
+    if target_region != "ALL":
+        filtered = [n for n in filtered if n["region"] == target_region]
+        
+    timeframe_filtered = [n for n in filtered if n["timeframe"] == timeframe]
+    if not timeframe_filtered:
+        timeframe_filtered = filtered
+        
+    return timeframe_filtered
+

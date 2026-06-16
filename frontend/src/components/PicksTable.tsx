@@ -216,11 +216,11 @@ export default function PicksTable({
       </div>
 
       {/* Mobile Card List View */}
-      <div className="block md:hidden space-y-4">
+      <div className="block md:hidden space-y-3">
         {sortedPicks.length === 0 ? (
-          <div className={`flex flex-col items-center justify-center gap-3 p-12 border rounded-2xl ${themeConfig.bg}`}>
-            <AlertTriangle className="w-8 h-8 text-yellow-500/50" />
-            <p className="text-zinc-500 text-sm">No predictions available.</p>
+          <div className={`flex flex-col items-center justify-center gap-2.5 p-8 border rounded-xl ${themeConfig.bg}`}>
+            <AlertTriangle className="w-6 h-6 text-yellow-500/50" />
+            <p className="text-zinc-500 text-xs">No predictions available.</p>
           </div>
         ) : (
           sortedPicks.map((pick, i) => {
@@ -228,51 +228,53 @@ export default function PicksTable({
             const openPrice = pick.predictive_open || pick.ltp || 0;
             
             return (
-              <div key={i} className={`p-5 rounded-2xl flex flex-col gap-4 shadow-xl backdrop-blur-md border ${themeConfig.bg}`}>
+              <div key={i} className={`p-3.5 rounded-xl flex flex-col gap-3 shadow-lg border ${themeConfig.bg}`}>
                 {/* Header Info */}
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center border border-white/10 ${isBearish ? 'bg-gradient-to-br from-red-500/20 to-orange-500/20' : (sym === '₹' ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20' : 'bg-gradient-to-br from-blue-500/20 to-purple-500/20')}`}>
-                      {getCurrencyIcon(pick.exchange)}
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center border border-white/10 ${isBearish ? 'bg-gradient-to-br from-red-500/20 to-orange-500/20' : (sym === '₹' ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20' : 'bg-gradient-to-br from-blue-500/20 to-purple-500/20')}`}>
+                      {["NSE", "BSE"].includes(pick.exchange.toUpperCase()) 
+                        ? <IndianRupee className="w-3.5 h-3.5 text-green-400" />
+                        : <DollarSign className="w-3.5 h-3.5 text-blue-400" />}
                     </div>
                     <div>
-                      <div className="font-bold text-lg text-white">{pick.ticker}</div>
-                      <div className="text-xs text-zinc-500">{pick.exchange}</div>
+                      <div className="font-bold text-sm text-white">{pick.ticker}</div>
+                      <div className="text-[10px] text-zinc-500 leading-none">{pick.exchange}</div>
                     </div>
                   </div>
-
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+ 
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                     pick.directional_conviction.toLowerCase() === 'high' 
                       ? themeConfig.iconBg
                       : pick.directional_conviction.toLowerCase() === 'medium'
                       ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
                       : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
                   }`}>
-                    {pick.directional_conviction.toLowerCase() === 'high' && (isBearish ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />)}
+                    {pick.directional_conviction.toLowerCase() === 'high' && (isBearish ? <TrendingDown className="w-2.5 h-2.5" /> : <TrendingUp className="w-2.5 h-2.5" />)}
                     {pick.directional_conviction}
                   </span>
                 </div>
-
+ 
                 {/* Catalyst News Button */}
-                <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                <div className="bg-black/30 p-2.5 rounded-lg border border-white/5">
                   <button 
                     onClick={() => setSelectedNews({ ticker: pick.ticker, news: pick.full_news || pick.catalyst_core })}
                     className="text-left w-full group/btn"
                   >
-                    <div className="text-xs text-zinc-300 group-hover/btn:text-cyan-400 transition-colors flex items-start gap-2">
-                      <Info className="w-4 h-4 shrink-0 text-cyan-400 mt-0.5" />
+                    <div className="text-[11px] text-zinc-300 group-hover/btn:text-cyan-400 transition-colors flex items-start gap-1.5">
+                      <Info className="w-3.5 h-3.5 shrink-0 text-cyan-400 mt-0.5" />
                       <div className="line-clamp-2 leading-relaxed">
                         {pick.catalyst_core}
                       </div>
                     </div>
                   </button>
                 </div>
-
+ 
                 {/* Value Metrics Grid */}
-                <div className="grid grid-cols-2 gap-3 mt-1">
-                  <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex flex-col gap-1.5">
-                    <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider">Price Context</span>
-                    <div className="flex flex-col gap-1 text-xs font-mono">
+                <div className="grid grid-cols-2 gap-2 mt-0.5">
+                  <div className="bg-white/5 p-2 rounded-lg border border-white/5 flex flex-col gap-1">
+                    <span className="text-zinc-500 text-[8px] uppercase font-bold tracking-wider">Price Context</span>
+                    <div className="flex flex-col gap-0.5 text-[10px] font-mono">
                       <div className="flex justify-between">
                         <span className="text-zinc-400">LTP:</span>
                         <span className="text-white font-bold">{pick.ltp ? `${sym}${pick.ltp.toFixed(2)}` : '---'}</span>
@@ -283,30 +285,30 @@ export default function PicksTable({
                       </div>
                     </div>
                   </div>
-
-                  <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex flex-col gap-1.5">
-                    <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider">Stop-Loss (ATR)</span>
-                    <div className="flex flex-col items-start gap-1 text-xs font-mono">
-                      <div className="text-red-400 font-bold bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
+ 
+                  <div className="bg-white/5 p-2 rounded-lg border border-white/5 flex flex-col gap-1">
+                    <span className="text-zinc-500 text-[8px] uppercase font-bold tracking-wider">Stop-Loss (ATR)</span>
+                    <div className="flex flex-col items-start gap-0.5 text-[10px] font-mono">
+                      <div className="text-red-400 font-bold bg-red-500/10 px-1.5 py-0.5 text-[9px] rounded border border-red-500/20">
                         {pick.stop_loss_atr ? `${sym}${pick.stop_loss_atr.toFixed(2)}` : "N/A"}
                       </div>
                       {openPrice > 0 && pick.stop_loss_atr && (
-                        <div className="text-zinc-500 text-[9px]">
+                        <div className="text-zinc-500 text-[8px] leading-none">
                           Trig: {sym}{(isBearish ? openPrice + pick.stop_loss_atr : openPrice - pick.stop_loss_atr).toFixed(2)}
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
-
-                <div className="bg-white/5 p-3 rounded-xl border border-white/5 flex flex-col gap-1">
-                  <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider">Target Margin</span>
+ 
+                <div className="bg-white/5 p-2 rounded-lg border border-white/5 flex flex-col gap-0.5">
+                  <span className="text-zinc-500 text-[8px] uppercase font-bold tracking-wider">Target Margin</span>
                   <div className="flex items-center justify-between font-mono">
-                    <div className={`${themeConfig.textPrimary} font-bold text-sm`}>
+                    <div className={`${themeConfig.textPrimary} font-bold text-xs`}>
                       {themeConfig.sign}{pick.expected_margin_low}% <span className="text-zinc-500">→</span> {themeConfig.sign}{pick.expected_margin_high}%
                     </div>
                     {openPrice > 0 && (
-                      <div className={`${themeConfig.textSecondary} text-xs`}>
+                      <div className={`${themeConfig.textSecondary} text-[10px]`}>
                         {isBearish ? "-" : "+"}{sym}{calculateAbsoluteMargin(openPrice, pick.expected_margin_low)} to {isBearish ? "-" : "+"}{sym}{calculateAbsoluteMargin(openPrice, pick.expected_margin_high)}
                       </div>
                     )}
