@@ -297,6 +297,8 @@ def search_stock(ticker: str, current_user: Profile = Depends(get_current_approv
     if not ticker_upper:
         raise HTTPException(status_code=400, detail="Ticker parameter cannot be empty")
         
+    search_ticker_only = map_yahoo_to_ticker_info(ticker_upper)["ticker"]
+        
     candidate_symbols = set()
     matched_predefined = []
     
@@ -348,6 +350,10 @@ def search_stock(ticker: str, current_user: Profile = Depends(get_current_approv
         pure_ticker = info["ticker"]
         exchange = info["exchange"]
         
+        # Enforce strict substring matching on ticker symbol
+        if search_ticker_only not in pure_ticker.upper():
+            continue
+            
         dup_key = (pure_ticker.upper(), exchange.upper())
         if dup_key in processed_keys:
             continue
