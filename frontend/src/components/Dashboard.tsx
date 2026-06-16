@@ -69,7 +69,7 @@ export default function Dashboard({
 
   // Search states
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResult, setSearchResult] = useState<Pick | null>(null);
+  const [searchResults, setSearchResults] = useState<Pick[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
 
@@ -91,7 +91,7 @@ export default function Dashboard({
     if (!isAdded) {
       detail = bullishPicks.find(p => p.ticker === ticker) || 
                bearishPicks.find(p => p.ticker === ticker) ||
-               (searchResult && searchResult.ticker === ticker ? searchResult : undefined);
+               searchResults.find(p => p.ticker === ticker);
     }
     
     setWatchlistStocks(prev => {
@@ -218,7 +218,7 @@ export default function Dashboard({
       s.on("market_update", (tick: { ticker: string, ltp: number }) => {
         setBullishPicks(current => current.map(p => p.ticker === tick.ticker ? { ...p, ltp: tick.ltp } : p));
         setBearishPicks(current => current.map(p => p.ticker === tick.ticker ? { ...p, ltp: tick.ltp } : p));
-        setSearchResult(current => current && current.ticker === tick.ticker ? { ...current, ltp: tick.ltp } : current);
+        setSearchResults(current => current.map(p => p.ticker === tick.ticker ? { ...p, ltp: tick.ltp } : p));
         setWatchlistStockDetails(current => {
           if (current[tick.ticker]) {
             return {
@@ -267,7 +267,7 @@ export default function Dashboard({
     
     setIsSearching(true);
     setSearchError("");
-    setSearchResult(null);
+    setSearchResults([]);
     
     try {
       const supabase = createClient();
@@ -284,7 +284,10 @@ export default function Dashboard({
       
       if (res.ok) {
         const data = await res.json();
-        setSearchResult(data);
+        setSearchResults(data);
+        if (data.length === 0) {
+          setSearchError("No matching stocks found.");
+        }
       } else {
         const errData = await res.json();
         setSearchError(errData.detail || "Stock not found.");
@@ -499,24 +502,48 @@ export default function Dashboard({
       )}
 
       {/* Search Result display */}
-      {viewType === 'stocks' && searchResult && (
-        <div className="mb-6 p-4 bg-cyan-950/20 border border-cyan-500/30 rounded-2xl relative">
+      {viewType === 'stocks' && searchResults.length > 0 && (
+        <div className="mb-6 p-4 bg-cyan-950/20 border border-cyan-500/30 rounded-2xl relative flex flex-col gap-6">
           <button 
-            onClick={() => setSearchResult(null)}
+            onClick={() => setSearchResults([])}
             className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-white/10 text-zinc-400 transition"
+            title="Clear Search Results"
           >
             <X size={16} />
           </button>
-          <h3 className="text-sm font-bold text-cyan-400 mb-3 flex items-center gap-1.5">
-            <Search size={16} /> Search Result: {searchResult.ticker}
+          <h3 className="text-sm font-bold text-cyan-400 flex items-center gap-1.5">
+            <Search size={16} /> Search Results ({searchResults.length})
           </h3>
-          <PicksTable 
-            picks={[searchResult]} 
-            isBearish={searchResult.predictive_open ? searchResult.predictive_open < (searchResult.ltp || 0) : false} 
-            setSelectedNews={setSelectedNews}
-            watchlist={watchlistStocks}
-            onToggleWatchlist={handleToggleStockWatchlist}
-          />
+          
+          {searchResults.filter(p => !p.predictive_open || p.predictive_open >= (p.ltp || 0)).length > 0 && (
+            <div className="flex flex-col gap-2">
+              <h4 className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5 pl-1">
+                <TrendingUp size={12} /> Bullish Setups
+              </h4>
+              <PicksTable 
+                picks={searchResults.filter(p => !p.predictive_open || p.predictive_open >= (p.ltp || 0))} 
+                isBearish={false} 
+                setSelectedNews={setSelectedNews}
+                watchlist={watchlistStocks}
+                onToggleWatchlist={handleToggleStockWatchlist}
+              />
+            </div>
+          )}
+
+          {searchResults.filter(p => p.predictive_open && p.predictive_open < (p.ltp || 0)).length > 0 && (
+            <div className="flex flex-col gap-2">
+              <h4 className="text-xs font-semibold text-red-400 flex items-center gap-1.5 pl-1">
+                <TrendingDown size={12} /> Bearish Setups
+              </h4>
+              <PicksTable 
+                picks={searchResults.filter(p => p.predictive_open && p.predictive_open < (p.ltp || 0))} 
+                isBearish={true} 
+                setSelectedNews={setSelectedNews}
+                watchlist={watchlistStocks}
+                onToggleWatchlist={handleToggleStockWatchlist}
+              />
+            </div>
+          )}
         </div>
       )}
 

@@ -1,5 +1,7 @@
 import os
 import socketio
+import requests
+import urllib.parse
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
@@ -270,77 +272,143 @@ def get_daily_picks(region: str = "ALL", timeframe: str = "1Y", db: Session = De
         "bearish": final_bearish
     }
 
+def map_yahoo_to_ticker_info(sym: str) -> dict:
+    sym_upper = sym.strip().upper()
+    if sym_upper.endswith(".NS"):
+        return {"ticker": sym_upper.rsplit(".", 1)[0], "exchange": "NSE", "yahoo_sym": sym_upper}
+    elif sym_upper.endswith(".BO"):
+        return {"ticker": sym_upper.rsplit(".", 1)[0], "exchange": "BSE", "yahoo_sym": sym_upper}
+    elif sym_upper.endswith(".L"):
+        return {"ticker": sym_upper.rsplit(".", 1)[0], "exchange": "LSE", "yahoo_sym": sym_upper}
+    elif sym_upper.endswith(".AS"):
+        return {"ticker": sym_upper.rsplit(".", 1)[0], "exchange": "Euronext", "yahoo_sym": sym_upper}
+    elif sym_upper.endswith(".HK"):
+        return {"ticker": sym_upper.rsplit(".", 1)[0], "exchange": "HKEX", "yahoo_sym": sym_upper}
+    elif sym_upper.endswith(".T"):
+        return {"ticker": sym_upper.rsplit(".", 1)[0], "exchange": "TSE", "yahoo_sym": sym_upper}
+    elif "." in sym_upper:
+        return {"ticker": sym_upper.rsplit(".", 1)[0], "exchange": "WORLD", "yahoo_sym": sym_upper}
+    else:
+        return {"ticker": sym_upper, "exchange": "NASDAQ", "yahoo_sym": sym_upper}
+
 @app.get("/api/search")
 def search_stock(ticker: str, current_user: Profile = Depends(get_current_approved_user)):
     ticker_upper = ticker.strip().upper()
     if not ticker_upper:
         raise HTTPException(status_code=400, detail="Ticker parameter cannot be empty")
         
-    # 1. Check if the stock already exists in the live picks cache
+    candidate_symbols = set()
+    matched_predefined = []
+    
+    # 1. Check predefined picks for substring match on ticker
     picks = fetch_live_picks()
     for tf in picks:
         for direction in ["bullish", "bearish"]:
             for p in picks[tf][direction]:
-                if p["ticker"].upper() == ticker_upper:
-                    return p
+                if ticker_upper in p["ticker"].upper():
+                    sym = map_ticker_to_yahoo(p["ticker"], p["exchange"])
+                    candidate_symbols.add(sym.upper())
+                    matched_predefined.append(p)
                     
-    # 2. If not in picks, resolve exchange and fetch price from Yahoo Finance
-    info = resolve_ticker_info(ticker_upper)
-    exchange = info["exchange"]
-    pure_ticker = info["ticker"]
-    yahoo_sym = info["yahoo_sym"]
-    
-    # Try fetching
+    # 2. Query Yahoo Finance Search API for substring/fuzzy matches
+    url = f"https://query2.finance.yahoo.com/v1/finance/search?q={urllib.parse.quote(ticker)}"
+    headers = {"User-Agent": "Mozilla/5.0"}
+    try:
+        r = requests.get(url, headers=headers, timeout=5)
+        if r.status_code == 200:
+            res = r.json()
+            quotes = res.get("quotes", [])
+            for q in quotes:
+                qtype = q.get("quoteType", "")
+                sym = q.get("symbol", "")
+                if qtype in ["EQUITY", "ETF"] and sym:
+                    candidate_symbols.add(sym.upper())
+    except Exception as e:
+        print(f"Error querying Yahoo Search API for {ticker_upper}: {e}")
+        
+    if not candidate_symbols:
+        return []
+        
+    # 3. Fetch live prices for all candidates in a single batch
+    symbols_list = list(candidate_symbols)[:10]  # Cap at 10 results
     live_prices = {}
     try:
-        live_prices = fetch_live_prices([yahoo_sym])
+        live_prices = fetch_live_prices(symbols_list)
     except Exception as e:
-        print(f"Error searching symbol {yahoo_sym}: {e}")
+        print(f"Error fetching live prices for search results: {e}")
         
-    if yahoo_sym in live_prices:
-        ltp = live_prices[yahoo_sym]["price"]
-        prev_close = live_prices[yahoo_sym]["prev_close"]
-    else:
-        # Default fallback if symbol doesn't exist/fetch failed
-        ltp = 150.0
-        prev_close = 148.0
-        
-    # 3. Construct prediction indicators dynamically
-    diff = ltp - prev_close
-    pct_change = (diff / prev_close * 100) if prev_close else 0.0
-    directional_conviction = "High" if abs(pct_change) > 1.5 else "Medium"
-    expected_margin_low = round(max(0.5, abs(pct_change)), 2)
-    expected_margin_high = round(expected_margin_low * 2.0, 2)
+    results = []
+    processed_keys = set()
     
-    # Generate generic ATR (3% of price)
-    atr = round(ltp * 0.03, 2)
-    
-    if diff >= 0:
-        catalyst_core = f"Positive momentum detected for {pure_ticker} on {exchange} exchange."
-        full_news = f"{pure_ticker} shares closed up at {ltp} ({pct_change:+.2f}%) under buying pressure. Vector-based projections support short-term continuation."
-        predictive_open = round(ltp + (atr * 0.5), 2)
-        stop_loss_atr = atr
-        invalidation_level = round(ltp - atr, 2)
-    else:
-        catalyst_core = f"Downward pressure detected for {pure_ticker} on {exchange} exchange."
-        full_news = f"{pure_ticker} shares slipped to {ltp} ({pct_change:.2f}%) due to profit booking. Indicators suggest testing lower support levels before rebound."
-        predictive_open = round(ltp - (atr * 0.5), 2)
-        stop_loss_atr = atr
-        invalidation_level = round(ltp + atr, 2)
+    for sym in symbols_list:
+        if sym not in live_prices:
+            continue
+            
+        info = map_yahoo_to_ticker_info(sym)
+        pure_ticker = info["ticker"]
+        exchange = info["exchange"]
         
-    return {
-        "ticker": pure_ticker,
-        "exchange": exchange,
-        "catalyst_core": catalyst_core,
-        "full_news": full_news,
-        "directional_conviction": directional_conviction,
-        "expected_margin_low": expected_margin_low,
-        "expected_margin_high": expected_margin_high,
-        "stop_loss_atr": stop_loss_atr,
-        "invalidation_level": invalidation_level,
-        "ltp": ltp,
-        "predictive_open": predictive_open
-    }
+        dup_key = (pure_ticker.upper(), exchange.upper())
+        if dup_key in processed_keys:
+            continue
+        processed_keys.add(dup_key)
+        
+        # Check if we have predefined details
+        found_predef = None
+        for p in matched_predefined:
+            if p["ticker"].upper() == pure_ticker.upper() and p["exchange"].upper() == exchange.upper():
+                found_predef = p.copy()
+                break
+                
+        ltp = live_prices[sym]["price"]
+        prev_close = live_prices[sym]["prev_close"]
+        diff = ltp - prev_close
+        pct_change = (diff / prev_close * 100) if prev_close else 0.0
+        
+        if found_predef:
+            # Scale predefined indicators to the new live price
+            old_ltp = found_predef.get("ltp") or 1.0
+            scale = ltp / old_ltp
+            found_predef["ltp"] = ltp
+            found_predef["predictive_open"] = round(found_predef.get("predictive_open", ltp) * scale, 2)
+            found_predef["invalidation_level"] = round(found_predef.get("invalidation_level", ltp) * scale, 2)
+            found_predef["stop_loss_atr"] = round(found_predef.get("stop_loss_atr", ltp * 0.03) * scale, 2)
+            results.append(found_predef)
+        else:
+            # Generate new dynamic setup
+            directional_conviction = "High" if abs(pct_change) > 1.5 else "Medium"
+            expected_margin_low = round(max(0.5, abs(pct_change)), 2)
+            expected_margin_high = round(expected_margin_low * 2.0, 2)
+            atr = round(ltp * 0.03, 2)
+            
+            if diff >= 0:
+                catalyst_core = f"Positive momentum detected for {pure_ticker} on {exchange} exchange."
+                full_news = f"{pure_ticker} shares closed up at {ltp} ({pct_change:+.2f}%) under buying pressure. Vector-based projections support short-term continuation."
+                predictive_open = round(ltp + (atr * 0.5), 2)
+                stop_loss_atr = atr
+                invalidation_level = round(ltp - atr, 2)
+            else:
+                catalyst_core = f"Downward pressure detected for {pure_ticker} on {exchange} exchange."
+                full_news = f"{pure_ticker} shares slipped to {ltp} ({pct_change:.2f}%) due to profit booking. Indicators suggest testing lower support levels before rebound."
+                predictive_open = round(ltp - (atr * 0.5), 2)
+                stop_loss_atr = atr
+                invalidation_level = round(ltp + atr, 2)
+                
+            results.append({
+                "ticker": pure_ticker,
+                "exchange": exchange,
+                "catalyst_core": catalyst_core,
+                "full_news": full_news,
+                "directional_conviction": directional_conviction,
+                "expected_margin_low": expected_margin_low,
+                "expected_margin_high": expected_margin_high,
+                "stop_loss_atr": stop_loss_atr,
+                "invalidation_level": invalidation_level,
+                "ltp": ltp,
+                "predictive_open": predictive_open
+            })
+            
+    return results
 
 @app.get("/api/commodities")
 def get_commodities(current_user: Profile = Depends(get_current_approved_user)):
