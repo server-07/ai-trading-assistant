@@ -126,7 +126,7 @@ def generate_commodity_data(base_price, volatility, trend, days=100):
     return data
 
 def map_ticker_to_yahoo(ticker: str, exchange: str) -> str:
-    if exchange in ["NSE", "BSE"]:
+    if exchange == "NSE":
         if ticker == "ZOMATO":
             return "ETERNAL.NS"
         elif ticker in ["LARSEN", "LT"]:
@@ -135,6 +135,8 @@ def map_ticker_to_yahoo(ticker: str, exchange: str) -> str:
             return "TMCV.NS"
         else:
             return f"{ticker}.NS"
+    elif exchange == "BSE":
+        return f"{ticker}.BO"
     elif exchange == "LSE":
         return f"{ticker}.L"
     elif exchange == "Euronext":
@@ -145,6 +147,116 @@ def map_ticker_to_yahoo(ticker: str, exchange: str) -> str:
         return f"{ticker}.T"
     else:
         return ticker
+
+def resolve_ticker_info(ticker: str) -> dict:
+    ticker_upper = ticker.strip().upper()
+    if not ticker_upper:
+        return {"ticker": "", "exchange": "NASDAQ", "yahoo_sym": ""}
+
+    # 1. Parse explicit suffixes
+    if ticker_upper.endswith(".NS"):
+        return {
+            "ticker": ticker_upper.rsplit(".", 1)[0],
+            "exchange": "NSE",
+            "yahoo_sym": ticker_upper
+        }
+    elif ticker_upper.endswith(".BO"):
+        return {
+            "ticker": ticker_upper.rsplit(".", 1)[0],
+            "exchange": "BSE",
+            "yahoo_sym": ticker_upper
+        }
+    elif ticker_upper.endswith(".L"):
+        return {
+            "ticker": ticker_upper.rsplit(".", 1)[0],
+            "exchange": "LSE",
+            "yahoo_sym": ticker_upper
+        }
+    elif ticker_upper.endswith(".AS"):
+        return {
+            "ticker": ticker_upper.rsplit(".", 1)[0],
+            "exchange": "Euronext",
+            "yahoo_sym": ticker_upper
+        }
+    elif ticker_upper.endswith(".HK"):
+        return {
+            "ticker": ticker_upper.rsplit(".", 1)[0],
+            "exchange": "HKEX",
+            "yahoo_sym": ticker_upper
+        }
+    elif ticker_upper.endswith(".T"):
+        return {
+            "ticker": ticker_upper.rsplit(".", 1)[0],
+            "exchange": "TSE",
+            "yahoo_sym": ticker_upper
+        }
+
+    # 2. Check predefined list mappings
+    nse_predefined = ["RELIANCE", "ZOMATO", "SUZLON", "TATASTEEL", "IREDA", "HAL", "PAYTM", "WIPRO", "ITC", "HDFCBANK", "LARSEN", "LT", "ADANIENT", "SBIN", "TATAMOTORS", "BANDHANBNK", "DELHIVERY", "HINDUNILVR", "INFY", "ICICIBANK", "M&M", "NTPC", "BHEL", "ASIANPAINT", "TCS", "BHARTIARTL", "SUNPHARMA", "KOTAKBANK", "UPL", "PAGEIND"]
+    if ticker_upper in nse_predefined:
+        return {
+            "ticker": ticker_upper,
+            "exchange": "NSE",
+            "yahoo_sym": map_ticker_to_yahoo(ticker_upper, "NSE")
+        }
+    elif ticker_upper in ["BP", "AHT"]:
+        return {
+            "ticker": ticker_upper,
+            "exchange": "LSE",
+            "yahoo_sym": map_ticker_to_yahoo(ticker_upper, "LSE")
+        }
+    elif ticker_upper in ["ASML"]:
+        return {
+            "ticker": ticker_upper,
+            "exchange": "Euronext",
+            "yahoo_sym": map_ticker_to_yahoo(ticker_upper, "Euronext")
+        }
+    elif ticker_upper in ["7203"]:
+        return {
+            "ticker": ticker_upper,
+            "exchange": "TSE",
+            "yahoo_sym": map_ticker_to_yahoo(ticker_upper, "TSE")
+        }
+    elif ticker_upper in ["9988"]:
+        return {
+            "ticker": ticker_upper,
+            "exchange": "HKEX",
+            "yahoo_sym": map_ticker_to_yahoo(ticker_upper, "HKEX")
+        }
+
+    # 3. Dynamic candidate resolution via Yahoo Finance Spark API
+    candidates = [f"{ticker_upper}.NS", f"{ticker_upper}.BO", ticker_upper]
+    try:
+        live_prices = fetch_live_prices(candidates)
+    except Exception as e:
+        print(f"Error resolving candidates for {ticker_upper}: {e}")
+        live_prices = {}
+
+    if f"{ticker_upper}.NS" in live_prices:
+        return {
+            "ticker": ticker_upper,
+            "exchange": "NSE",
+            "yahoo_sym": f"{ticker_upper}.NS"
+        }
+    elif f"{ticker_upper}.BO" in live_prices:
+        return {
+            "ticker": ticker_upper,
+            "exchange": "BSE",
+            "yahoo_sym": f"{ticker_upper}.BO"
+        }
+    elif ticker_upper in live_prices:
+        return {
+            "ticker": ticker_upper,
+            "exchange": "NASDAQ",
+            "yahoo_sym": ticker_upper
+        }
+
+    # 4. Fallback if no prices fetched
+    return {
+        "ticker": ticker_upper,
+        "exchange": "NASDAQ",
+        "yahoo_sym": ticker_upper
+    }
 
 def fetch_live_prices(symbols_list):
     """

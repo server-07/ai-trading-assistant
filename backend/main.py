@@ -64,7 +64,7 @@ def on_startup():
 def health_check():
     return {"status": "ok"}
 
-from market_data_service import get_mock_picks as fetch_live_picks, get_mock_commodities as fetch_live_commodities, fetch_live_prices, map_ticker_to_yahoo
+from market_data_service import get_mock_picks as fetch_live_picks, get_mock_commodities as fetch_live_commodities, fetch_live_prices, map_ticker_to_yahoo, resolve_ticker_info
 
 def get_news_based_picks(region: str, timeframe: str, db: Session):
     from market_data_service import get_live_news
@@ -128,56 +128,16 @@ def get_news_based_picks(region: str, timeframe: str, db: Session):
     return sorted_tickers, ticker_data
 
 def generate_stock_pick_details(ticker: str, sentiment: float = 0.0):
-    ticker_upper = ticker.strip().upper()
-    if ticker_upper.endswith(".NS"):
-        exchange = "NSE"
-        pure_ticker = ticker_upper.rsplit(".", 1)[0]
-    elif ticker_upper.endswith(".BO"):
-        exchange = "BSE"
-        pure_ticker = ticker_upper.rsplit(".", 1)[0]
-    elif ticker_upper.endswith(".L"):
-        exchange = "LSE"
-        pure_ticker = ticker_upper.rsplit(".", 1)[0]
-    elif ticker_upper.endswith(".AS"):
-        exchange = "Euronext"
-        pure_ticker = ticker_upper.rsplit(".", 1)[0]
-    elif ticker_upper.endswith(".HK"):
-        exchange = "HKEX"
-        pure_ticker = ticker_upper.rsplit(".", 1)[0]
-    elif ticker_upper.endswith(".T"):
-        exchange = "TSE"
-        pure_ticker = ticker_upper.rsplit(".", 1)[0]
-    else:
-        # Check predefined list mappings
-        if ticker_upper in ["RELIANCE", "ZOMATO", "SUZLON", "TATASTEEL", "IREDA", "HAL", "PAYTM", "WIPRO", "ITC", "HDFCBANK", "LARSEN", "LT", "ADANIENT", "SBIN", "TATAMOTORS", "BANDHANBNK", "DELHIVERY", "HINDUNILVR", "INFY", "ICICIBANK", "M&M", "NTPC", "BHEL", "ASIANPAINT", "TCS", "BHARTIARTL", "SUNPHARMA", "KOTAKBANK", "UPL", "PAGEIND"]:
-            exchange = "NSE"
-        elif ticker_upper in ["BP", "AHT"]:
-            exchange = "LSE"
-        elif ticker_upper in ["ASML"]:
-            exchange = "Euronext"
-        elif ticker_upper in ["7203"]:
-            exchange = "TSE"
-        elif ticker_upper in ["9988"]:
-            exchange = "HKEX"
-        else:
-            exchange = "NASDAQ"
-        pure_ticker = ticker_upper
-        
-    yahoo_sym = map_ticker_to_yahoo(pure_ticker, exchange)
+    info = resolve_ticker_info(ticker)
+    pure_ticker = info["ticker"]
+    exchange = info["exchange"]
+    yahoo_sym = info["yahoo_sym"]
     
     live_prices = {}
     try:
         live_prices = fetch_live_prices([yahoo_sym])
     except Exception as e:
         print(f"Error fetching symbol {yahoo_sym}: {e}")
-        
-    if yahoo_sym not in live_prices:
-        try:
-            live_prices = fetch_live_prices([ticker_upper])
-            if ticker_upper in live_prices:
-                yahoo_sym = ticker_upper
-        except Exception:
-            pass
             
     if yahoo_sym in live_prices:
         ltp = live_prices[yahoo_sym]["price"]
@@ -324,31 +284,11 @@ def search_stock(ticker: str, current_user: Profile = Depends(get_current_approv
                 if p["ticker"].upper() == ticker_upper:
                     return p
                     
-    # 2. If not in picks, parse exchange and fetch price from Yahoo Finance
-    # Guess the exchange
-    if ticker_upper.endswith(".NS") or ticker_upper.endswith(".NS"):
-        exchange = "NSE"
-        pure_ticker = ticker_upper.rsplit(".", 1)[0]
-    elif ticker_upper.endswith(".BO"):
-        exchange = "BSE"
-        pure_ticker = ticker_upper.rsplit(".", 1)[0]
-    elif ticker_upper.endswith(".L"):
-        exchange = "LSE"
-        pure_ticker = ticker_upper.rsplit(".", 1)[0]
-    elif ticker_upper.endswith(".AS"):
-        exchange = "Euronext"
-        pure_ticker = ticker_upper.rsplit(".", 1)[0]
-    elif ticker_upper.endswith(".HK"):
-        exchange = "HKEX"
-        pure_ticker = ticker_upper.rsplit(".", 1)[0]
-    elif ticker_upper.endswith(".T"):
-        exchange = "TSE"
-        pure_ticker = ticker_upper.rsplit(".", 1)[0]
-    else:
-        exchange = "NASDAQ"
-        pure_ticker = ticker_upper
-        
-    yahoo_sym = map_ticker_to_yahoo(pure_ticker, exchange)
+    # 2. If not in picks, resolve exchange and fetch price from Yahoo Finance
+    info = resolve_ticker_info(ticker_upper)
+    exchange = info["exchange"]
+    pure_ticker = info["ticker"]
+    yahoo_sym = info["yahoo_sym"]
     
     # Try fetching
     live_prices = {}
@@ -357,15 +297,6 @@ def search_stock(ticker: str, current_user: Profile = Depends(get_current_approv
     except Exception as e:
         print(f"Error searching symbol {yahoo_sym}: {e}")
         
-    if yahoo_sym not in live_prices:
-        # Retry with pure ticker directly
-        try:
-            live_prices = fetch_live_prices([ticker_upper])
-            if ticker_upper in live_prices:
-                yahoo_sym = ticker_upper
-        except Exception:
-            pass
-            
     if yahoo_sym in live_prices:
         ltp = live_prices[yahoo_sym]["price"]
         prev_close = live_prices[yahoo_sym]["prev_close"]
