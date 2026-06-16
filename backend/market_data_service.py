@@ -687,9 +687,14 @@ def get_live_news(region: str = "ALL", timeframe: str = "1Y"):
     if region != "ALL":
         filtered = [n for n in filtered if n["region"] == region]
         
-    timeframe_filtered = [n for n in filtered if n["timeframe"] == timeframe]
-    if not timeframe_filtered:
-        timeframe_filtered = filtered
+    allowed_tf = ["1D"]
+    if timeframe == "1W":
+        allowed_tf = ["1D", "1W"]
+    elif timeframe == "1M":
+        allowed_tf = ["1D", "1W", "1M"]
+    elif timeframe == "1Y":
+        allowed_tf = ["1D", "1W", "1M", "1Y"]
         
+    timeframe_filtered = [n for n in filtered if n.get("timeframe", "1D") in allowed_tf]
     return timeframe_filtered
 

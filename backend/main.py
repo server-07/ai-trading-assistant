@@ -66,29 +66,248 @@ def health_check():
 
 from market_data_service import get_mock_picks as fetch_live_picks, get_mock_commodities as fetch_live_commodities, fetch_live_prices, map_ticker_to_yahoo
 
-@app.get("/api/picks")
-def get_daily_picks(region: str = "ALL", timeframe: str = "1Y", db: Session = Depends(get_db), current_user: Profile = Depends(get_current_approved_user)):
-    picks = fetch_live_picks()
+def get_news_based_picks(region: str, timeframe: str, db: Session):
+    from market_data_service import get_live_news
+    articles = []
+    try:
+        from database import NewsArticle
+        from datetime import datetime, timezone, timedelta
+        query = db.query(NewsArticle)
+        now = datetime.now(timezone.utc)
+        if timeframe == "1D":
+            query = query.filter(NewsArticle.published_at >= now - timedelta(days=1))
+        elif timeframe == "1W":
+            query = query.filter(NewsArticle.published_at >= now - timedelta(days=7))
+        elif timeframe == "1M":
+            query = query.filter(NewsArticle.published_at >= now - timedelta(days=30))
+        elif timeframe == "1Y":
+            query = query.filter(NewsArticle.published_at >= now - timedelta(days=365))
+            
+        # Filter by region
+        if region == "INDIA":
+            query = query.filter(NewsArticle.title.ilike("%india%") | NewsArticle.content.ilike("%india%") | NewsArticle.source.ilike("%moneycontrol%") | NewsArticle.source.ilike("%times%"))
+        elif region == "NASDAQ":
+            query = query.filter(~(NewsArticle.source.ilike("%moneycontrol%") | NewsArticle.source.ilike("%times%")) & ~NewsArticle.title.ilike("%tokyo%") & ~NewsArticle.title.ilike("%toyota%") & ~NewsArticle.title.ilike("%alibaba%") & ~NewsArticle.title.ilike("%asml%") & ~NewsArticle.title.ilike("%london%") & ~NewsArticle.title.ilike("%boe%"))
+        elif region == "WORLD":
+            query = query.filter(NewsArticle.title.ilike("%tokyo%") | NewsArticle.title.ilike("%toyota%") | NewsArticle.title.ilike("%alibaba%") | NewsArticle.title.ilike("%asml%") | NewsArticle.title.ilike("%london%") | NewsArticle.title.ilike("%boe%") | NewsArticle.source.ilike("%nikkei%") | NewsArticle.source.ilike("%scmp%") | NewsArticle.source.ilike("%ft%") | NewsArticle.source.ilike("%financial times%"))
+            
+        articles = query.order_by(NewsArticle.published_at.desc()).limit(30).all()
+        articles = [
+            {
+                "tickers": a.entities.get("tickers", []) if a.entities else [],
+                "sentiment_score": a.sentiment_score or 0.0
+            } for a in articles
+        ]
+    except Exception as e:
+        print(f"Error querying DB news for picks: {e}")
+        articles = []
+        
+    if not articles:
+        live_art = get_live_news(region, timeframe)
+        articles = [
+            {
+                "tickers": a.get("tickers", []),
+                "sentiment_score": a.get("sentiment_score", 0.0)
+            } for a in live_art
+        ]
+        
+    ticker_data = {}
+    for a in articles:
+        tickers = a.get("tickers", [])
+        sentiment = a.get("sentiment_score", 0.0)
+        for t in tickers:
+            t_upper = t.strip().upper()
+            if not t_upper:
+                continue
+            if t_upper not in ticker_data:
+                ticker_data[t_upper] = {"count": 0, "sentiments": []}
+            ticker_data[t_upper]["count"] += 1
+            ticker_data[t_upper]["sentiments"].append(sentiment)
+            
+    sorted_tickers = sorted(ticker_data.keys(), key=lambda k: ticker_data[k]["count"], reverse=True)
+    return sorted_tickers, ticker_data
+
+def generate_stock_pick_details(ticker: str, sentiment: float = 0.0):
+    ticker_upper = ticker.strip().upper()
+    if ticker_upper.endswith(".NS"):
+        exchange = "NSE"
+        pure_ticker = ticker_upper.rsplit(".", 1)[0]
+    elif ticker_upper.endswith(".BO"):
+        exchange = "BSE"
+        pure_ticker = ticker_upper.rsplit(".", 1)[0]
+    elif ticker_upper.endswith(".L"):
+        exchange = "LSE"
+        pure_ticker = ticker_upper.rsplit(".", 1)[0]
+    elif ticker_upper.endswith(".AS"):
+        exchange = "Euronext"
+        pure_ticker = ticker_upper.rsplit(".", 1)[0]
+    elif ticker_upper.endswith(".HK"):
+        exchange = "HKEX"
+        pure_ticker = ticker_upper.rsplit(".", 1)[0]
+    elif ticker_upper.endswith(".T"):
+        exchange = "TSE"
+        pure_ticker = ticker_upper.rsplit(".", 1)[0]
+    else:
+        # Check predefined list mappings
+        if ticker_upper in ["RELIANCE", "ZOMATO", "SUZLON", "TATASTEEL", "IREDA", "HAL", "PAYTM", "WIPRO", "ITC", "HDFCBANK", "LARSEN", "LT", "ADANIENT", "SBIN", "TATAMOTORS", "BANDHANBNK", "DELHIVERY", "HINDUNILVR", "INFY", "ICICIBANK", "M&M", "NTPC", "BHEL", "ASIANPAINT", "TCS", "BHARTIARTL", "SUNPHARMA", "KOTAKBANK", "UPL", "PAGEIND"]:
+            exchange = "NSE"
+        elif ticker_upper in ["BP", "AHT"]:
+            exchange = "LSE"
+        elif ticker_upper in ["ASML"]:
+            exchange = "Euronext"
+        elif ticker_upper in ["7203"]:
+            exchange = "TSE"
+        elif ticker_upper in ["9988"]:
+            exchange = "HKEX"
+        else:
+            exchange = "NASDAQ"
+        pure_ticker = ticker_upper
+        
+    yahoo_sym = map_ticker_to_yahoo(pure_ticker, exchange)
     
-    # Get picks for timeframe
-    timeframe_picks = picks.get(timeframe, picks["1Y"])
-    bullish_picks = timeframe_picks["bullish"]
-    bearish_picks = timeframe_picks["bearish"]
+    live_prices = {}
+    try:
+        live_prices = fetch_live_prices([yahoo_sym])
+    except Exception as e:
+        print(f"Error fetching symbol {yahoo_sym}: {e}")
+        
+    if yahoo_sym not in live_prices:
+        try:
+            live_prices = fetch_live_prices([ticker_upper])
+            if ticker_upper in live_prices:
+                yahoo_sym = ticker_upper
+        except Exception:
+            pass
+            
+    if yahoo_sym in live_prices:
+        ltp = live_prices[yahoo_sym]["price"]
+        prev_close = live_prices[yahoo_sym]["prev_close"]
+    else:
+        ltp = 150.0
+        prev_close = 148.0
+        
+    diff = ltp - prev_close
+    pct_change = (diff / prev_close * 100) if prev_close else 0.0
+    directional_conviction = "High" if abs(pct_change) > 1.5 else "Medium"
+    expected_margin_low = round(max(0.5, abs(pct_change)), 2)
+    expected_margin_high = round(expected_margin_low * 2.0, 2)
     
-    # Filter by region
-    if region == "INDIA":
-        bullish_picks = [p for p in bullish_picks if p["exchange"] in ["NSE", "BSE"]]
-        bearish_picks = [p for p in bearish_picks if p["exchange"] in ["NSE", "BSE"]]
-    elif region == "NASDAQ":
-        bullish_picks = [p for p in bullish_picks if p["exchange"] in ["NASDAQ", "NYSE"]]
-        bearish_picks = [p for p in bearish_picks if p["exchange"] in ["NASDAQ", "NYSE"]]
-    elif region == "WORLD":
-        bullish_picks = [p for p in bullish_picks if p["exchange"] not in ["NSE", "BSE", "NASDAQ", "NYSE"]]
-        bearish_picks = [p for p in bearish_picks if p["exchange"] not in ["NSE", "BSE", "NASDAQ", "NYSE"]]
+    atr = round(ltp * 0.03, 2)
+    is_bullish = sentiment >= 0.0 if sentiment != 0.0 else (diff >= 0)
+    
+    if is_bullish:
+        catalyst_core = f"Bullish momentum and positive news sentiment driving {pure_ticker} catalyst."
+        full_news = f"{pure_ticker} shares closed positive at {ltp} ({pct_change:+.2f}%) under high-volume buying pressure, supported by positive regional headlines."
+        predictive_open = round(ltp + (atr * 0.5), 2)
+        stop_loss_atr = atr
+        invalidation_level = round(ltp - atr, 2)
+    else:
+        catalyst_core = f"Bearish sentiment and technical resistance detected for {pure_ticker}."
+        full_news = f"{pure_ticker} shares slipped to {ltp} ({pct_change:.2f}%) amid cautionary news updates. Projections indicate testing lower range limits."
+        predictive_open = round(ltp - (atr * 0.5), 2)
+        stop_loss_atr = atr
+        invalidation_level = round(ltp + atr, 2)
         
     return {
-        "bullish": bullish_picks,
-        "bearish": bearish_picks
+        "ticker": pure_ticker,
+        "exchange": exchange,
+        "catalyst_core": catalyst_core,
+        "full_news": full_news,
+        "directional_conviction": directional_conviction,
+        "expected_margin_low": expected_margin_low,
+        "expected_margin_high": expected_margin_high,
+        "stop_loss_atr": stop_loss_atr,
+        "invalidation_level": invalidation_level,
+        "ltp": ltp,
+        "predictive_open": predictive_open
+    }, is_bullish
+
+@app.get("/api/picks")
+def get_daily_picks(region: str = "ALL", timeframe: str = "1Y", db: Session = Depends(get_db), current_user: Profile = Depends(get_current_approved_user)):
+    all_predefined = fetch_live_picks()
+    timeframe_picks = all_predefined.get(timeframe, all_predefined["1Y"])
+    base_bullish = timeframe_picks["bullish"]
+    base_bearish = timeframe_picks["bearish"]
+    
+    def matches_region(exchange: str) -> bool:
+        ex = exchange.upper()
+        if region == "INDIA":
+            return ex in ["NSE", "BSE"]
+        elif region == "NASDAQ":
+            return ex in ["NASDAQ", "NYSE"]
+        elif region == "WORLD":
+            return ex not in ["NSE", "BSE", "NASDAQ", "NYSE"]
+        return True # ALL
+        
+    news_tickers, news_meta = get_news_based_picks(region, timeframe, db)
+    
+    news_bullish = []
+    news_bearish = []
+    processed_tickers = set()
+    
+    for ticker in news_tickers:
+        ticker_upper = ticker.upper()
+        if ticker_upper in processed_tickers:
+            continue
+            
+        found_pick = None
+        found_direction = None
+        for tf_key in all_predefined:
+            for d in ["bullish", "bearish"]:
+                for p in all_predefined[tf_key][d]:
+                    if p["ticker"].upper() == ticker_upper:
+                        found_pick = p.copy()
+                        found_direction = d
+                        break
+                if found_pick:
+                    break
+            if found_pick:
+                break
+                
+        if found_pick:
+            if not matches_region(found_pick["exchange"]):
+                continue
+            if found_direction == "bullish":
+                news_bullish.append(found_pick)
+            else:
+                news_bearish.append(found_pick)
+            processed_tickers.add(ticker_upper)
+        else:
+            avg_sentiment = 0.0
+            if ticker_upper in news_meta:
+                s_list = news_meta[ticker_upper]["sentiments"]
+                avg_sentiment = sum(s_list) / len(s_list) if s_list else 0.0
+                
+            try:
+                gen_pick, is_bull = generate_stock_pick_details(ticker, avg_sentiment)
+                if not matches_region(gen_pick["exchange"]):
+                    continue
+                if is_bull:
+                    news_bullish.append(gen_pick)
+                else:
+                    news_bearish.append(gen_pick)
+                processed_tickers.add(ticker_upper)
+            except Exception as e:
+                print(f"Error generating dynamic pick for {ticker}: {e}")
+            
+    filtered_base_bullish = [p for p in base_bullish if matches_region(p["exchange"])]
+    filtered_base_bearish = [p for p in base_bearish if matches_region(p["exchange"])]
+    
+    final_bullish = list(news_bullish)
+    for p in filtered_base_bullish:
+        if p["ticker"].upper() not in processed_tickers:
+            final_bullish.append(p)
+            processed_tickers.add(p["ticker"].upper())
+            
+    final_bearish = list(news_bearish)
+    for p in filtered_base_bearish:
+        if p["ticker"].upper() not in processed_tickers:
+            final_bearish.append(p)
+            processed_tickers.add(p["ticker"].upper())
+            
+    return {
+        "bullish": final_bullish,
+        "bearish": final_bearish
     }
 
 @app.get("/api/search")

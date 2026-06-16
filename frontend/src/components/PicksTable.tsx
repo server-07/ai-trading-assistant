@@ -301,44 +301,44 @@ export default function PicksTable({
                   </button>
                 </div>
  
-                {/* Value Metrics Grid (3 columns for layout compression) */}
-                <div className="grid grid-cols-3 gap-1.5 mt-0.5">
-                  <div className="bg-white/5 p-1.5 rounded border border-white/5 flex flex-col gap-0.5">
+                {/* Value Metrics Grid (Optimized mobile width split for readability) */}
+                <div className="grid grid-cols-[1.35fr_0.825fr_0.825fr] gap-1 mt-0.5">
+                  <div className="bg-white/5 p-1.5 rounded border border-white/5 flex flex-col gap-0.5 justify-center">
                     <span className="text-zinc-500 text-[7px] uppercase font-bold tracking-wider leading-none">Price</span>
-                    <div className="flex flex-col text-[9px] font-mono leading-tight mt-0.5">
-                      <div className="flex justify-between">
+                    <div className="flex flex-col text-[10px] font-mono leading-normal mt-0.5">
+                      <div className="flex justify-between items-center">
                         <span className="text-zinc-400">LTP:</span>
-                        <span className="text-white font-bold">{pick.ltp ? `${sym}${pick.ltp.toFixed(1)}` : '---'}</span>
+                        <span className="text-white font-bold text-[10.5px]">{pick.ltp ? `${sym}${pick.ltp.toFixed(1)}` : '---'}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span className="text-blue-400">Open:</span>
-                        <span className="text-blue-400 font-bold">{pick.predictive_open ? `${sym}${pick.predictive_open.toFixed(1)}` : '---'}</span>
+                        <span className="text-blue-400 font-bold text-[10.5px]">{pick.predictive_open ? `${sym}${pick.predictive_open.toFixed(1)}` : '---'}</span>
                       </div>
                     </div>
                   </div>
- 
-                  <div className="bg-white/5 p-1.5 rounded border border-white/5 flex flex-col gap-0.5">
+
+                  <div className="bg-white/5 p-1 px-0.5 rounded border border-white/5 flex flex-col gap-0.5 text-center justify-center">
                     <span className="text-zinc-500 text-[7px] uppercase font-bold tracking-wider leading-none">Stop-Loss</span>
-                    <div className="flex flex-col items-start text-[9px] font-mono leading-tight mt-0.5">
-                      <div className="text-red-400 font-bold bg-red-500/10 px-1  rounded border border-red-500/20 text-[8px] leading-tight">
+                    <div className="flex flex-col items-center font-mono leading-none mt-1">
+                      <div className="text-red-400 font-bold bg-red-500/10 px-1 py-0.5 rounded border border-red-500/20 text-[8.5px] leading-none">
                         {pick.stop_loss_atr ? `${sym}${pick.stop_loss_atr.toFixed(1)}` : "N/A"}
                       </div>
                       {openPrice > 0 && pick.stop_loss_atr && (
-                        <div className="text-zinc-500 text-[8px] leading-none mt-0.5 truncate max-w-full">
+                        <div className="text-zinc-500 text-[7.5px] leading-none mt-1 truncate max-w-full">
                           Tr:{(isBearish ? openPrice + pick.stop_loss_atr : openPrice - pick.stop_loss_atr).toFixed(1)}
                         </div>
                       )}
                     </div>
                   </div>
- 
-                  <div className="bg-white/5 p-1.5 rounded border border-white/5 flex flex-col gap-0.5">
+
+                  <div className="bg-white/5 p-1 px-0.5 rounded border border-white/5 flex flex-col gap-0.5 text-center justify-center">
                     <span className="text-zinc-500 text-[7px] uppercase font-bold tracking-wider leading-none">Margin</span>
-                    <div className="flex flex-col text-[9px] font-mono leading-tight mt-0.5">
-                      <div className={`${themeConfig.textPrimary} font-bold text-[8px]`}>
+                    <div className="flex flex-col font-mono leading-none mt-1">
+                      <div className={`${themeConfig.textPrimary} font-bold text-[8.5px] leading-none`}>
                         {themeConfig.sign}{pick.expected_margin_low}%-{pick.expected_margin_high}%
                       </div>
                       {openPrice > 0 && (
-                        <div className={`${themeConfig.textSecondary} text-[7px] leading-none mt-0.5 truncate max-w-full`}>
+                        <div className={`${themeConfig.textSecondary} text-[7.5px] leading-none mt-1 truncate max-w-full`}>
                           {isBearish ? "-" : "+"}{sym}{calculateAbsoluteMargin(openPrice, pick.expected_margin_low)}
                         </div>
                       )}

@@ -44,6 +44,19 @@ export default function Dashboard({
   const [newsArticles, setNewsArticles] = useState<any[]>([]);
   const [isNewsLoading, setIsNewsLoading] = useState(false);
 
+  // Pagination states
+  const [stockPage, setStockPage] = useState(1);
+  const [newsPage, setNewsPage] = useState(1);
+
+  // Reset pagination on filter change
+  useEffect(() => {
+    setStockPage(1);
+  }, [activeSection, region, timeframe, viewType]);
+
+  useEffect(() => {
+    setNewsPage(1);
+  }, [region, timeframe, viewType]);
+
   // Auto-refresh triggers
   const [newsRefreshTrigger, setNewsRefreshTrigger] = useState(0);
   const [stocksRefreshTrigger, setStocksRefreshTrigger] = useState(0);
@@ -551,59 +564,110 @@ export default function Dashboard({
         </div>
       )}
 
-      {/* Content Area */}
-      <div className="mb-6 md:mb-8">
-        {viewType === 'news' ? (
-          <NewsSection articles={newsArticles} isLoading={isNewsLoading} />
-        ) : (
-          <>
-            {activeSection === 'bullish' && <PicksTable picks={bullishPicks} isBearish={false} setSelectedNews={setSelectedNews} watchlist={watchlistStocks} onToggleWatchlist={handleToggleStockWatchlist} />}
-            {activeSection === 'bearish' && <PicksTable picks={bearishPicks} isBearish={true} setSelectedNews={setSelectedNews} watchlist={watchlistStocks} onToggleWatchlist={handleToggleStockWatchlist} />}
-            {activeSection === 'commodities' && <CommoditiesSection refreshTrigger={refreshTrigger} setSelectedNews={setSelectedNews} watchlist={watchlistCommodities} onToggleWatchlist={handleToggleCommodityWatchlist} />}
-            {activeSection === 'watchlist' && (
-              <div className="flex flex-col gap-6">
-                <div>
-                  <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                    <Star className="w-4.5 h-4.5 text-yellow-400 fill-yellow-400" /> Watchlisted Stocks
-                  </h3>
-                  {watchlistStocks.length === 0 ? (
-                    <div className="p-8 text-center text-zinc-500 border border-white/5 bg-white/5 rounded-xl text-sm">
-                      No watchlisted stocks yet. Star a stock ticker to add it.
-                    </div>
-                  ) : (
-                    <PicksTable 
-                      picks={Object.values(watchlistStockDetails).filter(p => watchlistStocks.includes(p.ticker))} 
-                      isBearish={false} 
-                      setSelectedNews={setSelectedNews}
-                      watchlist={watchlistStocks}
-                      onToggleWatchlist={handleToggleStockWatchlist}
-                    />
-                  )}
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                    <Star className="w-4.5 h-4.5 text-yellow-400 fill-yellow-400" /> Watchlisted Commodities
-                  </h3>
-                  {watchlistCommodities.length === 0 ? (
-                    <div className="p-8 text-center text-zinc-500 border border-white/5 bg-white/5 rounded-xl text-sm">
-                      No watchlisted commodities yet. Star a commodity to add it.
-                    </div>
-                  ) : (
-                    <CommoditiesSection 
-                      refreshTrigger={refreshTrigger} 
-                      setSelectedNews={setSelectedNews}
-                      watchlist={watchlistCommodities}
-                      onToggleWatchlist={handleToggleCommodityWatchlist}
-                      watchlistOnly={true}
-                    />
-                  )}
-                </div>
+      {/* Pagination helper */}
+      {(() => {
+        const renderPagination = (currentPage: number, totalItems: number, itemsPerPage: number, onPageChange: (p: number) => void) => {
+          const totalPages = Math.ceil(totalItems / itemsPerPage);
+          if (totalPages <= 1) return null;
+          
+          return (
+            <div className="flex items-center justify-between mt-3 p-2.5 bg-black/40 border border-white/10 rounded-xl">
+              <span className="text-[11px] text-zinc-400">
+                Showing <span className="font-semibold text-white">{Math.min(totalItems, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(totalItems, currentPage * itemsPerPage)}</span> of <span className="font-semibold text-white">{totalItems}</span>
+              </span>
+              <div className="flex gap-2">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => onPageChange(currentPage - 1)}
+                  className="px-2.5 py-1 bg-zinc-900 border border-white/10 rounded-lg text-[10px] font-semibold hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition cursor-pointer"
+                >
+                  Prev
+                </button>
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => onPageChange(currentPage + 1)}
+                  className="px-2.5 py-1 bg-zinc-900 border border-white/10 rounded-lg text-[10px] font-semibold hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent transition cursor-pointer"
+                >
+                  Next
+                </button>
               </div>
+            </div>
+          );
+        };
+
+        const watchlistedStocksFiltered = Object.values(watchlistStockDetails).filter(p => watchlistStocks.includes(p.ticker));
+
+        return (
+          <div className="mb-6 md:mb-8">
+            {viewType === 'news' ? (
+              <>
+                <NewsSection articles={newsArticles.slice((newsPage - 1) * 10, newsPage * 10)} isLoading={isNewsLoading} />
+                {!isNewsLoading && renderPagination(newsPage, newsArticles.length, 10, setNewsPage)}
+              </>
+            ) : (
+              <>
+                {activeSection === 'bullish' && (
+                  <>
+                    <PicksTable picks={bullishPicks.slice((stockPage - 1) * 10, stockPage * 10)} isBearish={false} setSelectedNews={setSelectedNews} watchlist={watchlistStocks} onToggleWatchlist={handleToggleStockWatchlist} />
+                    {renderPagination(stockPage, bullishPicks.length, 10, setStockPage)}
+                  </>
+                )}
+                {activeSection === 'bearish' && (
+                  <>
+                    <PicksTable picks={bearishPicks.slice((stockPage - 1) * 10, stockPage * 10)} isBearish={true} setSelectedNews={setSelectedNews} watchlist={watchlistStocks} onToggleWatchlist={handleToggleStockWatchlist} />
+                    {renderPagination(stockPage, bearishPicks.length, 10, setStockPage)}
+                  </>
+                )}
+                {activeSection === 'commodities' && <CommoditiesSection refreshTrigger={refreshTrigger} setSelectedNews={setSelectedNews} watchlist={watchlistCommodities} onToggleWatchlist={handleToggleCommodityWatchlist} />}
+                {activeSection === 'watchlist' && (
+                  <div className="flex flex-col gap-6">
+                    <div>
+                      <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                        <Star className="w-4.5 h-4.5 text-yellow-400 fill-yellow-400" /> Watchlisted Stocks
+                      </h3>
+                      {watchlistStocks.length === 0 ? (
+                        <div className="p-8 text-center text-zinc-500 border border-white/5 bg-white/5 rounded-xl text-sm">
+                          No watchlisted stocks yet. Star a stock ticker to add it.
+                        </div>
+                      ) : (
+                        <>
+                          <PicksTable 
+                            picks={watchlistedStocksFiltered.slice((stockPage - 1) * 10, stockPage * 10)} 
+                            isBearish={false} 
+                            setSelectedNews={setSelectedNews}
+                            watchlist={watchlistStocks}
+                            onToggleWatchlist={handleToggleStockWatchlist}
+                          />
+                          {renderPagination(stockPage, watchlistedStocksFiltered.length, 10, setStockPage)}
+                        </>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                        <Star className="w-4.5 h-4.5 text-yellow-400 fill-yellow-400" /> Watchlisted Commodities
+                      </h3>
+                      {watchlistCommodities.length === 0 ? (
+                        <div className="p-8 text-center text-zinc-500 border border-white/5 bg-white/5 rounded-xl text-sm">
+                          No watchlisted commodities yet. Star a commodity to add it.
+                        </div>
+                      ) : (
+                        <CommoditiesSection 
+                          refreshTrigger={refreshTrigger} 
+                          setSelectedNews={setSelectedNews}
+                          watchlist={watchlistCommodities}
+                          onToggleWatchlist={handleToggleCommodityWatchlist}
+                          watchlistOnly={true}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
-      </div>
+          </div>
+        );
+      })()}
 
       {/* News Modal */}
       {selectedNews && (

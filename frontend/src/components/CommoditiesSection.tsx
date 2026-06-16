@@ -233,24 +233,24 @@ export default function CommoditiesSection({
                 </button>
               </div>
 
-              {/* Price & Prediction Grid */}
-              <div className="grid grid-cols-2 gap-2 mt-0.5">
-                <div className="bg-white/5 p-1.5 rounded border border-white/5 flex flex-col gap-0.5">
-                  <span className="text-zinc-500 text-[7px] uppercase font-bold tracking-wider leading-none">Live Rate</span>
-                  <div className="flex flex-col text-[9px] font-mono leading-tight mt-0.5">
-                    <div className="text-white font-bold">
+              {/* Price & Prediction Stack (100% horizontal space) */}
+              <div className="flex flex-col gap-1.5 mt-0.5">
+                <div className="bg-white/5 p-2 rounded border border-white/5 flex justify-between items-center">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-zinc-500 text-[8px] uppercase font-bold tracking-wider leading-none">Live Rate</span>
+                    <div className="text-white font-bold text-xs mt-0.5">
                       ₹{c.current_price.toLocaleString('en-IN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                     </div>
-                    <div className={`text-[8px] ${valueClass} font-semibold`}>
-                      {c.change.startsWith("+") || c.change.startsWith("-") ? "" : (isBullish ? "+" : "-")}
-                      {c.change} ({c.change_pct})
-                    </div>
+                  </div>
+                  <div className={`text-[10px] ${valueClass} font-bold font-mono`}>
+                    {c.change.startsWith("+") || c.change.startsWith("-") ? "" : (isBullish ? "+" : "-")}
+                    {c.change} ({c.change_pct})
                   </div>
                 </div>
 
-                <div className="bg-white/5 p-1.5 rounded border border-white/5 flex flex-col gap-0.5">
-                  <span className="text-zinc-500 text-[7px] uppercase font-bold tracking-wider leading-none">AI Prediction Target</span>
-                  <p className={`text-[8px] leading-tight mt-0.5 font-medium ${valueClass}`}>
+                <div className="bg-white/5 p-2 rounded border border-white/5 flex flex-col gap-1">
+                  <span className="text-zinc-500 text-[8px] uppercase font-bold tracking-wider leading-none">AI Prediction Target</span>
+                  <p className={`text-[10px] leading-relaxed font-medium ${valueClass}`}>
                     {c.prediction}
                   </p>
                 </div>
