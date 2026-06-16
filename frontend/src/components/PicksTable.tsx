@@ -1,4 +1,4 @@
-import { Activity, TrendingUp, TrendingDown, IndianRupee, DollarSign, AlertTriangle, Info, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Activity, TrendingUp, TrendingDown, IndianRupee, DollarSign, AlertTriangle, Info, ArrowUpDown, ArrowUp, ArrowDown, Star } from "lucide-react";
 import { useState } from "react";
 
 interface Pick {
@@ -19,11 +19,15 @@ interface Pick {
 export default function PicksTable({ 
   picks, 
   isBearish, 
-  setSelectedNews 
+  setSelectedNews,
+  watchlist = [],
+  onToggleWatchlist
 }: { 
   picks: Pick[], 
   isBearish: boolean, 
-  setSelectedNews: (news: {ticker: string, news: string}) => void 
+  setSelectedNews: (news: {ticker: string, news: string}) => void,
+  watchlist?: string[],
+  onToggleWatchlist?: (ticker: string) => void
 }) {
   type SortColumn = 'name' | 'conviction' | 'margin' | null;
   const [sortColumn, setSortColumn] = useState<SortColumn>(null);
@@ -132,7 +136,21 @@ export default function PicksTable({
                           {getCurrencyIcon(pick.exchange)}
                         </div>
                         <div>
-                          <div className="font-bold text-lg text-white">{pick.ticker}</div>
+                          <div className="font-bold text-lg text-white flex items-center gap-1.5">
+                            <span>{pick.ticker}</span>
+                            {onToggleWatchlist && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); onToggleWatchlist(pick.ticker); }}
+                                className="focus:outline-none p-1 rounded-full hover:bg-white/10 transition-colors"
+                                title={watchlist.includes(pick.ticker) ? "Remove from Watchlist" : "Add to Watchlist"}
+                              >
+                                <Star
+                                  size={16}
+                                  className={watchlist.includes(pick.ticker) ? "fill-yellow-400 text-yellow-400" : "text-zinc-500 hover:text-yellow-400 transition-colors"}
+                                />
+                              </button>
+                            )}
+                          </div>
                           <div className="text-xs text-zinc-500">{pick.exchange}</div>
                         </div>
                       </div>
@@ -238,7 +256,20 @@ export default function PicksTable({
                         : <DollarSign className="w-3 h-3 text-blue-400" />}
                     </div>
                     <div>
-                      <div className="font-bold text-xs text-white leading-tight">{pick.ticker}</div>
+                      <div className="font-bold text-xs text-white leading-tight flex items-center gap-1">
+                        <span>{pick.ticker}</span>
+                        {onToggleWatchlist && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onToggleWatchlist(pick.ticker); }}
+                            className="focus:outline-none p-0.5"
+                          >
+                            <Star
+                              size={11}
+                              className={watchlist.includes(pick.ticker) ? "fill-yellow-400 text-yellow-400" : "text-zinc-500"}
+                            />
+                          </button>
+                        )}
+                      </div>
                       <div className="text-[9px] text-zinc-500 leading-none">{pick.exchange}</div>
                     </div>
                   </div>

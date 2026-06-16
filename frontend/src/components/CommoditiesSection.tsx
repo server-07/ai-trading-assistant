@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TrendingUp, TrendingDown, Info, Activity, AlertTriangle } from "lucide-react";
+import { TrendingUp, TrendingDown, Info, Activity, AlertTriangle, Star } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
 interface CommodityData {
@@ -16,10 +16,16 @@ interface CommodityData {
 
 export default function CommoditiesSection({ 
   refreshTrigger, 
-  setSelectedNews 
+  setSelectedNews,
+  watchlist = [],
+  onToggleWatchlist,
+  watchlistOnly = false
 }: { 
   refreshTrigger?: number;
   setSelectedNews: (news: { ticker: string; news: string } | null) => void;
+  watchlist?: string[];
+  onToggleWatchlist?: (key: string) => void;
+  watchlistOnly?: boolean;
 }) {
   const [data, setData] = useState<Record<string, CommodityData> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,10 +78,14 @@ export default function CommoditiesSection({
     );
   }
 
-  const commodities = Object.entries(data).map(([key, value]) => ({
+  let commodities = Object.entries(data).map(([key, value]) => ({
     key,
     ...value
   }));
+
+  if (watchlistOnly) {
+    commodities = commodities.filter(c => watchlist.includes(c.key));
+  }
 
   return (
     <div className="w-full flex flex-col mt-4">
@@ -107,7 +117,21 @@ export default function CommoditiesSection({
                         <Activity className={`w-5 h-5 ${isBullish ? 'text-green-400' : 'text-red-400'}`} />
                       </div>
                       <div>
-                        <div className="font-bold text-base text-white">{c.name.split(" (")[0]}</div>
+                        <div className="font-bold text-base text-white flex items-center gap-1.5">
+                          <span>{c.name.split(" (")[0]}</span>
+                          {onToggleWatchlist && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); onToggleWatchlist(c.key); }}
+                              className="focus:outline-none p-1 rounded-full hover:bg-white/10 transition-colors"
+                              title={watchlist.includes(c.key) ? "Remove from Watchlist" : "Add to Watchlist"}
+                            >
+                              <Star
+                                size={16}
+                                className={watchlist.includes(c.key) ? "fill-yellow-400 text-yellow-400" : "text-zinc-500 hover:text-yellow-400 transition-colors"}
+                              />
+                            </button>
+                          )}
+                        </div>
                         <div className="text-xs text-zinc-500">{c.name.includes(" (") ? c.name.split(" (")[1].replace(")", "") : ""}</div>
                       </div>
                     </div>
@@ -170,7 +194,20 @@ export default function CommoditiesSection({
                     <Activity className={`w-3.5 h-3.5 ${isBullish ? 'text-green-400' : 'text-red-400'}`} />
                   </div>
                   <div>
-                    <div className="font-bold text-xs text-white leading-tight">{c.name.split(" (")[0]}</div>
+                    <div className="font-bold text-xs text-white leading-tight flex items-center gap-1">
+                      <span>{c.name.split(" (")[0]}</span>
+                      {onToggleWatchlist && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onToggleWatchlist(c.key); }}
+                          className="focus:outline-none p-0.5"
+                        >
+                          <Star
+                            size={11}
+                            className={watchlist.includes(c.key) ? "fill-yellow-400 text-yellow-400" : "text-zinc-500"}
+                          />
+                        </button>
+                      )}
+                    </div>
                     <div className="text-[9px] text-zinc-500 leading-none">{c.name.includes(" (") ? c.name.split(" (")[1].replace(")", "") : ""}</div>
                   </div>
                 </div>

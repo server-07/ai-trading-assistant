@@ -38,27 +38,6 @@ export default async function Home() {
   return (
     <main className="flex-1 flex flex-col relative z-10">
 
-      {/* Header / Auth Navigation */}
-      <div className="w-full flex flex-wrap justify-end p-4 gap-3 md:gap-4 items-center border-b border-white/5 bg-black/20">
-        {fullName && (
-          <div className="text-xs md:text-sm font-medium text-zinc-300 mr-2 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Hi, <span className="hidden sm:inline">{fullName}</span><span className="sm:hidden">{fullName.split(' ')[0]}</span>
-          </div>
-        )}
-        {isAdmin && (
-          <Link href="/admin" className="text-xs md:text-sm font-medium text-cyan-400 hover:text-cyan-300 transition bg-cyan-900/20 px-3 py-1.5 rounded-full border border-cyan-800/50 whitespace-nowrap">
-            Admin Panel
-          </Link>
-        )}
-        <form action={signOut}>
-          <button className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm font-medium text-zinc-400 hover:text-white transition bg-zinc-900/50 px-3 py-1.5 rounded-full border border-zinc-800/50 backdrop-blur-md whitespace-nowrap">
-            <LogOut size={14} className="md:w-4 md:h-4" />
-            Sign Out
-          </button>
-        </form>
-      </div>
-
       {!isApproved ? (
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-700">
           <div className="w-20 h-20 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(245,158,11,0.1)]">
@@ -75,7 +54,7 @@ export default async function Home() {
       ) : (
         <>
           {/* Main Dashboard Content */}
-          <Dashboard />
+          <Dashboard fullName={fullName} isAdmin={isAdmin} />
           
           {/* Gemini AI Copilot Integration */}
           <CopilotDrawer />

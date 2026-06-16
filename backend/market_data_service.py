@@ -13,6 +13,8 @@ def get_base_picks():
                 {"ticker": "TSLA", "exchange": "NASDAQ", "catalyst_core": "Elon Musk tweet overnight hinting at new robotaxi feature.", "full_news": "Elon Musk teased an upcoming Full Self-Driving update focusing entirely on autonomous taxi routing algorithms, sparking pre-market retail buying.", "directional_conviction": "Medium", "expected_margin_low": 2.0, "expected_margin_high": 4.5, "stop_loss_atr": 8.0, "invalidation_level": 170.0, "ltp": 175.50, "predictive_open": 178.0},
                 {"ticker": "SUZLON", "exchange": "NSE", "catalyst_core": "Major new order win from state utility announced.", "full_news": "Suzlon Energy bags 400 MW order from Rajasthan state utility, strengthening its order book visibility for the next two quarters.", "directional_conviction": "High", "expected_margin_low": 3.0, "expected_margin_high": 5.0, "stop_loss_atr": 2.5, "invalidation_level": 48.0, "ltp": 51.50, "predictive_open": 53.50},
                 {"ticker": "NVDA", "exchange": "NASDAQ", "catalyst_core": "Supplier confirms increased component orders for Hopper GPUs.", "full_news": "Asian supply chain sources indicate a 15% WoW increase in substrate orders from Nvidia, hinting at strong datacenter demand.", "directional_conviction": "High", "expected_margin_low": 1.5, "expected_margin_high": 3.5, "stop_loss_atr": 15.0, "invalidation_level": 115.0, "ltp": 122.50, "predictive_open": 125.0},
+                {"ticker": "BP", "exchange": "LSE", "catalyst_core": "North Sea oil production exceeds targets.", "full_news": "BP reports higher-than-expected flow rates from its new deepwater wells in the North Sea, boosting near-term cash flow projections.", "directional_conviction": "High", "expected_margin_low": 2.0, "expected_margin_high": 4.5, "stop_loss_atr": 12.0, "invalidation_level": 440.0, "ltp": 460.0, "predictive_open": 472.0},
+                {"ticker": "ASML", "exchange": "Euronext", "catalyst_core": "Next-gen High-NA EUV system shipment confirmed.", "full_news": "ASML confirmed the shipment of its second High-NA EUV lithography machine to a major US customer, securing Q2 revenue recognition.", "directional_conviction": "High", "expected_margin_low": 3.0, "expected_margin_high": 6.5, "stop_loss_atr": 24.0, "invalidation_level": 820.0, "ltp": 850.0, "predictive_open": 878.0},
                 {"ticker": "TATASTEEL", "exchange": "NSE", "catalyst_core": "Global iron ore prices surge overnight.", "full_news": "Dalian iron ore futures hit a 3-month high on China stimulus hopes, lifting sentiment for Indian metal stocks in early trade.", "directional_conviction": "Medium", "expected_margin_low": 1.0, "expected_margin_high": 2.5, "stop_loss_atr": 4.5, "invalidation_level": 158.0, "ltp": 162.0, "predictive_open": 164.50},
                 {"ticker": "AAPL", "exchange": "NASDAQ", "catalyst_core": "Apple Intelligence beta rollout begins for developers.", "full_news": "Apple quietly seeded the first developer beta containing Apple Intelligence features, sparking positive sentiment on social media platforms.", "directional_conviction": "High", "expected_margin_low": 0.8, "expected_margin_high": 1.8, "stop_loss_atr": 2.0, "invalidation_level": 190.0, "ltp": 193.50, "predictive_open": 195.0},
                 {"ticker": "IREDA", "exchange": "NSE", "catalyst_core": "Credit rating upgrade by domestic rating agency.", "full_news": "ICRA upgrades IREDA's long-term rating to AAA, citing strong asset quality and government backing. Expected to reduce borrowing costs.", "directional_conviction": "High", "expected_margin_low": 4.0, "expected_margin_high": 8.0, "stop_loss_atr": 9.0, "invalidation_level": 175.0, "ltp": 188.0, "predictive_open": 195.0},
@@ -42,6 +44,7 @@ def get_base_picks():
                 {"ticker": "META", "exchange": "NASDAQ", "catalyst_core": "Llama 3 open-source traction driving developer ecosystem.", "full_news": "Meta's decision to open-source its latest models is accelerating developer adoption, creating a moat against proprietary models. Analysts upgrading.", "directional_conviction": "Medium", "expected_margin_low": 2.5, "expected_margin_high": 4.0, "stop_loss_atr": 14.0, "invalidation_level": 480.0, "ltp": 495.0, "predictive_open": 502.0}
             ],
             "bearish": [
+                {"ticker": "7203", "exchange": "TSE", "catalyst_core": "Hybrid delivery delays due to certification bottlenecks.", "full_news": "Toyota faced minor regulatory certification halts in domestic markets, likely slowing hybrid shipments over the next week.", "directional_conviction": "Medium", "expected_margin_low": -1.5, "expected_margin_high": -3.5, "stop_loss_atr": 6.0, "invalidation_level": 218.0, "ltp": 210.0, "predictive_open": 204.0},
                 {"ticker": "BANDHANBNK", "exchange": "NSE", "catalyst_core": "Microfinance stress rising in key geographical segments.", "full_news": "Collection efficiencies in eastern states have shown a slight dip, raising concerns over asset quality for MFI-heavy lenders like Bandhan Bank.", "directional_conviction": "High", "expected_margin_low": -3.0, "expected_margin_high": -6.0, "stop_loss_atr": 8.0, "invalidation_level": 210.0, "ltp": 195.0, "predictive_open": 188.0},
                 {"ticker": "SBUX", "exchange": "NASDAQ", "catalyst_core": "China sales metrics continue to disappoint.", "full_news": "Channel checks suggest Starbucks is losing further market share to local competitors in China, prompting downgrades ahead of the week.", "directional_conviction": "High", "expected_margin_low": -2.0, "expected_margin_high": -4.5, "stop_loss_atr": 2.5, "invalidation_level": 82.0, "ltp": 78.0, "predictive_open": 76.0},
                 {"ticker": "DELHIVERY", "exchange": "NSE", "catalyst_core": "E-commerce volume growth slowing down.", "full_news": "Recent data indicates a moderation in tier-2 city e-commerce order volumes, negatively impacting logistics players' revenue visibility.", "directional_conviction": "Medium", "expected_margin_low": -2.0, "expected_margin_high": -4.0, "stop_loss_atr": 12.0, "invalidation_level": 420.0, "ltp": 395.0, "predictive_open": 388.0},
@@ -53,6 +56,7 @@ def get_base_picks():
             "bullish": [
                 {"ticker": "INFY", "exchange": "NSE", "catalyst_core": "Monthly macro shift towards defensive IT as rate cut hopes fade.", "full_news": "With US inflation data coming in hot over the month, investors are rotating out of growth and back into stable dividend-paying IT firms like Infosys.", "directional_conviction": "Medium", "expected_margin_low": 4.0, "expected_margin_high": 8.0, "stop_loss_atr": 45.0, "invalidation_level": 1400.0, "ltp": 1420.0, "predictive_open": 1445.0},
                 {"ticker": "META", "exchange": "NASDAQ", "catalyst_core": "Strong ad revenue growth metrics verified over the rolling 30 days.", "full_news": "Third-party tracking tools indicate Meta's Instagram Reels monetization has increased by 15% month-over-month. AI engine forecasts sustained gap up.", "directional_conviction": "High", "expected_margin_low": 5.0, "expected_margin_high": 10.0, "stop_loss_atr": 15.0, "invalidation_level": 480.0, "ltp": 490.0, "predictive_open": 505.0},
+                {"ticker": "9988", "exchange": "HKEX", "catalyst_core": "Cloud intelligence division profitability inflecting.", "full_news": "Alibaba's cloud services division recorded a significant margins upgrade as AI compute demand from Chinese startups spiked.", "directional_conviction": "High", "expected_margin_low": 5.0, "expected_margin_high": 9.5, "stop_loss_atr": 4.0, "invalidation_level": 74.0, "ltp": 79.50, "predictive_open": 83.00},
                 {"ticker": "ICICIBANK", "exchange": "NSE", "catalyst_core": "Consistent net interest margin expansion over the month.", "full_news": "ICICI Bank's strategic repricing of loans is paying off, with NIMs expected to hit record highs this month according to analyst models.", "directional_conviction": "High", "expected_margin_low": 4.5, "expected_margin_high": 7.5, "stop_loss_atr": 30.0, "invalidation_level": 1100.0, "ltp": 1150.0, "predictive_open": 1175.0},
                 {"ticker": "NFLX", "exchange": "NASDAQ", "catalyst_core": "Password sharing crackdown yields sustained subscriber additions.", "full_news": "Data shows the paid sharing rollout continues to drive steady monthly subscriber growth in Latin America and APAC regions.", "directional_conviction": "High", "expected_margin_low": 6.0, "expected_margin_high": 12.0, "stop_loss_atr": 25.0, "invalidation_level": 600.0, "ltp": 640.0, "predictive_open": 655.0},
                 {"ticker": "M&M", "exchange": "NSE", "catalyst_core": "SUV booking backlog remains robust despite high interest rates.", "full_news": "Mahindra & Mahindra's SUV cancellations are practically zero, and new launches are keeping the waiting period high, securing monthly revenue visibility.", "directional_conviction": "High", "expected_margin_low": 5.0, "expected_margin_high": 9.0, "stop_loss_atr": 60.0, "invalidation_level": 2600.0, "ltp": 2750.0, "predictive_open": 2810.0},
@@ -78,6 +82,7 @@ def get_base_picks():
                 {"ticker": "AMZN", "exchange": "NASDAQ", "catalyst_core": "Project Kuiper and AWS growth compounding over the 1-year cycle.", "full_news": "Amazon's satellite internet division and accelerating AWS growth have created a solid fundamental floor over the last year.", "directional_conviction": "High", "expected_margin_low": 5.0, "expected_margin_high": 9.0, "stop_loss_atr": 8.0, "invalidation_level": 175.0, "ltp": 185.0, "predictive_open": 192.0},
                 {"ticker": "BHARTIARTL", "exchange": "NSE", "catalyst_core": "ARPU expansion solidifying after tariff hikes 1 year ago.", "full_news": "The effects of the recent tariff hikes are fully visible in the 1-year data, with ARPU expanding without significant subscriber churn.", "directional_conviction": "High", "expected_margin_low": 6.0, "expected_margin_high": 10.0, "stop_loss_atr": 20.0, "invalidation_level": 1300.0, "ltp": 1400.0, "predictive_open": 1450.0},
                 {"ticker": "AVGO", "exchange": "NASDAQ", "catalyst_core": "Custom AI silicon demand and VMWare synergy realization.", "full_news": "Broadcom's custom ASIC business is booming. The 1-year integration data of VMWare shows better-than-expected cost synergies.", "directional_conviction": "High", "expected_margin_low": 7.0, "expected_margin_high": 12.0, "stop_loss_atr": 40.0, "invalidation_level": 1400.0, "ltp": 1550.0, "predictive_open": 1620.0},
+                {"ticker": "AHT", "exchange": "LSE", "catalyst_core": "US infrastructure rental demand compounding over the year.", "full_news": "Ashtead Group benefits from sustained US federal infrastructure funding, boosting long-term rental equipment utilization rates.", "directional_conviction": "High", "expected_margin_low": 6.0, "expected_margin_high": 12.0, "stop_loss_atr": 20.0, "invalidation_level": 5100.0, "ltp": 5450.0, "predictive_open": 5800.0},
                 {"ticker": "LT", "exchange": "NSE", "catalyst_core": "Infrastructure capex execution reaching peak velocity.", "full_news": "L&T's execution speed on domestic infra projects has hit a 1-year high, ensuring strong revenue recognition for the upcoming quarter.", "directional_conviction": "High", "expected_margin_low": 4.0, "expected_margin_high": 8.0, "stop_loss_atr": 60.0, "invalidation_level": 3400.0, "ltp": 3600.0, "predictive_open": 3700.0},
                 {"ticker": "GOOGL", "exchange": "NASDAQ", "catalyst_core": "Search monetization stabilizing after initial AI overviews scare.", "full_news": "After a rocky start, Google's AI Overviews are showing stable ad click-through rates over the last year, easing investor anxiety.", "directional_conviction": "Medium", "expected_margin_low": 3.0, "expected_margin_high": 6.0, "stop_loss_atr": 6.0, "invalidation_level": 165.0, "ltp": 175.0, "predictive_open": 180.0},
                 {"ticker": "SUNPHARMA", "exchange": "NSE", "catalyst_core": "Specialty portfolio driving US revenue growth consistently.", "full_news": "Prescription data over the last year shows strong market share gains for Sun Pharma's specialty dermatology products in the US.", "directional_conviction": "High", "expected_margin_low": 4.5, "expected_margin_high": 8.5, "stop_loss_atr": 25.0, "invalidation_level": 1450.0, "ltp": 1520.0, "predictive_open": 1560.0},
@@ -130,6 +135,14 @@ def map_ticker_to_yahoo(ticker: str, exchange: str) -> str:
             return "TMCV.NS"
         else:
             return f"{ticker}.NS"
+    elif exchange == "LSE":
+        return f"{ticker}.L"
+    elif exchange == "Euronext":
+        return f"{ticker}.AS"
+    elif exchange == "HKEX":
+        return f"{ticker.zfill(4)}.HK" if ticker.isdigit() else f"{ticker}.HK"
+    elif exchange == "TSE":
+        return f"{ticker}.T"
     else:
         return ticker
 
@@ -623,13 +636,56 @@ def get_live_news(region: str = "ALL", timeframe: str = "1Y"):
             "tickers": ["MSFT"],
             "region": "NASDAQ",
             "timeframe": "1M"
+        },
+        {
+            "id": "news-13",
+            "title": "ASML jumps on robust EU chip funding outlook",
+            "content": "European semiconductor leader ASML saw shares rise after EU trade officials discussed expanding subsidies for domestic lithography development projects.",
+            "source": "Financial Times",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": 0.85,
+            "tickers": ["ASML"],
+            "region": "WORLD",
+            "timeframe": "1D"
+        },
+        {
+            "id": "news-14",
+            "title": "Bank of England keeps rates steady at 5.25% in split vote",
+            "content": "The BoE Monetary Policy Committee voted 6-3 to maintain the benchmark interest rate, citing sticky service sector inflation and wage hikes.",
+            "source": "BBC News",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(hours=7)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": -0.1,
+            "tickers": ["BP"],
+            "region": "WORLD",
+            "timeframe": "1W"
+        },
+        {
+            "id": "news-15",
+            "title": "Toyota production bottlenecks expected to ease by next quarter",
+            "content": "Toyota announced updates on regulatory safety certification audits, confirming that manufacturing volumes should return to normal within 45 days.",
+            "source": "Nikkei Asia",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(days=3)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": 0.5,
+            "tickers": ["TM"],
+            "region": "WORLD",
+            "timeframe": "1W"
+        },
+        {
+            "id": "news-16",
+            "title": "Alibaba Cloud pricing cuts drive massive developer adoption",
+            "content": "Alibaba announced price cuts of up to 40% on core database and compute instances, driving record monthly API subscription growth.",
+            "source": "South China Morning Post",
+            "published_at": (datetime.datetime.now() - datetime.timedelta(days=12)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "sentiment_score": 0.75,
+            "tickers": ["BABA"],
+            "region": "WORLD",
+            "timeframe": "1M"
         }
     ]
     
-    target_region = "NASDAQ" if region in ["WORLD", "NASDAQ"] else region
     filtered = all_news
-    if target_region != "ALL":
-        filtered = [n for n in filtered if n["region"] == target_region]
+    if region != "ALL":
+        filtered = [n for n in filtered if n["region"] == region]
         
     timeframe_filtered = [n for n in filtered if n["timeframe"] == timeframe]
     if not timeframe_filtered:
