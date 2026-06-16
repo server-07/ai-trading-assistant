@@ -177,7 +177,7 @@ export default function CommoditiesSection({
       </div>
 
       {/* Mobile Card view */}
-      <div className="block md:hidden space-y-2">
+      <div className="block md:hidden space-y-1.5">
         {commodities.map((c) => {
           const isBullish = c.trend === "bullish";
           const trendClass = isBullish 
@@ -186,7 +186,7 @@ export default function CommoditiesSection({
           const valueClass = isBullish ? "text-emerald-400" : "text-red-400";
           
           return (
-            <div key={c.key} className="p-2.5 rounded-lg flex flex-col gap-2 shadow-md border border-white/10 bg-zinc-900/40">
+            <div key={c.key} className={`p-2.5 rounded-xl flex flex-col gap-1.5 border transition-all ${isBullish ? 'border-emerald-500/25 shadow-[2px_3px_0px_rgba(16,185,129,0.12)] bg-gradient-to-br from-zinc-900/90 to-emerald-950/15' : 'border-red-500/25 shadow-[2px_3px_0px_rgba(239,68,68,0.12)] bg-gradient-to-br from-zinc-900/90 to-red-950/15'}`}>
               {/* Header */}
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-1.5">

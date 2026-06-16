@@ -233,8 +233,7 @@ export default function PicksTable({
         </div>
       </div>
 
-      {/* Mobile Card List View */}
-      <div className="block md:hidden space-y-2">
+      <div className="block md:hidden space-y-1.5">
         {sortedPicks.length === 0 ? (
           <div className={`flex flex-col items-center justify-center gap-2 p-6 border rounded-lg ${themeConfig.bg}`}>
             <AlertTriangle className="w-5 h-5 text-yellow-500/50" />
@@ -246,7 +245,7 @@ export default function PicksTable({
             const openPrice = pick.predictive_open || pick.ltp || 0;
             
             return (
-              <div key={i} className={`p-2.5 rounded-lg flex flex-col gap-2 shadow-md border ${themeConfig.bg}`}>
+              <div key={i} className={`p-2.5 rounded-xl flex flex-col gap-1.5 border transition-all ${isBearish ? 'border-red-500/25 shadow-[2px_3px_0px_rgba(239,68,68,0.12)] bg-gradient-to-br from-zinc-900/90 to-red-950/15' : (sym === '₹' ? 'border-emerald-500/25 shadow-[2px_3px_0px_rgba(16,185,129,0.12)] bg-gradient-to-br from-zinc-900/90 to-emerald-950/15' : 'border-blue-500/25 shadow-[2px_3px_0px_rgba(59,130,246,0.12)] bg-gradient-to-br from-zinc-900/90 to-blue-950/15')}`}>
                 {/* Header Info */}
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-1.5">
