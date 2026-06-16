@@ -475,7 +475,14 @@ export default function Dashboard({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-zinc-900/80 border border-white/10 rounded-xl px-4 py-2 pl-10 text-sm text-white focus:outline-none focus:border-cyan-500/50 placeholder:text-zinc-500"
               />
-              <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute left-3 top-2.5 text-zinc-400 hover:text-white transition-colors focus:outline-none"
+                title="Clear Search"
+              >
+                <Search className="w-4 h-4" />
+              </button>
             </div>
             <button 
               type="submit" 
