@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { createChart, ColorType, IChartApi, CandlestickSeries } from "lightweight-charts";
-import { Clock, TrendingUp, TrendingDown, Info, Activity } from "lucide-react";
+import { useEffect, useState } from "react";
+import { TrendingUp, TrendingDown, Info, Activity, AlertTriangle } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
 interface CommodityData {
@@ -13,28 +12,21 @@ interface CommodityData {
   trend: string;
   catalyst: string;
   prediction: string;
-  data: {
-    "1D": any[];
-    "1W": any[];
-    "1M": any[];
-    "1Y": any[];
-  };
 }
 
-interface CommoditiesResponse {
-  gold: CommodityData;
-  silver: CommodityData;
-  crude_oil: CommodityData;
-}
-
-export default function CommoditiesSection({ refreshTrigger }: { refreshTrigger?: number }) {
-  const [data, setData] = useState<CommoditiesResponse | null>(null);
-  const [goldTimeframe, setGoldTimeframe] = useState<"1D" | "1W" | "1M" | "1Y">("1M");
-  const [silverTimeframe, setSilverTimeframe] = useState<"1D" | "1W" | "1M" | "1Y">("1M");
-  const [oilTimeframe, setOilTimeframe] = useState<"1D" | "1W" | "1M" | "1Y">("1M");
+export default function CommoditiesSection({ 
+  refreshTrigger, 
+  setSelectedNews 
+}: { 
+  refreshTrigger?: number;
+  setSelectedNews: (news: { ticker: string; news: string } | null) => void;
+}) {
+  const [data, setData] = useState<Record<string, CommodityData> | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -55,204 +47,180 @@ export default function CommoditiesSection({ refreshTrigger }: { refreshTrigger?
         }
       } catch (err) {
         console.error("Failed to fetch commodities", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
   }, [refreshTrigger]);
 
-  if (!data) return null;
-
-  return (
-    <div className="w-full flex flex-col gap-6 mt-8">
-      <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-        <Activity className="w-6 h-6 text-yellow-500" />
-        Macro Commodities Intelligence
-      </h2>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <CommodityCard 
-          id="gold-chart" 
-          commodity={data.gold} 
-          timeframe={goldTimeframe} 
-          setTimeframe={setGoldTimeframe} 
-          theme="yellow" 
-        />
-        <CommodityCard 
-          id="silver-chart" 
-          commodity={data.silver} 
-          timeframe={silverTimeframe} 
-          setTimeframe={setSilverTimeframe} 
-          theme="slate" 
-        />
-        <CommodityCard 
-          id="oil-chart" 
-          commodity={data.crude_oil} 
-          timeframe={oilTimeframe} 
-          setTimeframe={setOilTimeframe} 
-          theme="blue" 
-        />
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 gap-3 text-zinc-400">
+        <Activity className="w-8 h-8 text-yellow-500 animate-spin" />
+        <p className="text-sm font-semibold">Syncing latest macro commodities...</p>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-function CommodityCard({ 
-  id, 
-  commodity, 
-  timeframe, 
-  setTimeframe, 
-  theme 
-}: { 
-  id: string, 
-  commodity: CommodityData, 
-  timeframe: "1D" | "1W" | "1M" | "1Y", 
-  setTimeframe: any, 
-  theme: "yellow" | "slate" | "blue" 
-}) {
-  const chartContainerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<IChartApi | null>(null);
+  if (!data) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 gap-3 text-zinc-500 border border-white/5 bg-white/5 rounded-xl text-center">
+        <AlertTriangle className="w-6 h-6 text-yellow-500/50" />
+        <p className="text-sm">No commodity data available.</p>
+      </div>
+    );
+  }
 
-  const isBullish = commodity.trend === "bullish";
-  const themeColors = {
-    yellow: {
-      text: "text-yellow-400",
-      bg: "bg-yellow-500/10",
-      border: "border-yellow-500/20",
-      line: "#eab308",
-      areaTop: "rgba(234, 179, 8, 0.4)",
-      areaBottom: "rgba(234, 179, 8, 0.0)",
-    },
-    slate: {
-      text: "text-slate-300",
-      bg: "bg-slate-500/10",
-      border: "border-slate-500/20",
-      line: "#cbd5e1",
-      areaTop: "rgba(203, 213, 225, 0.4)",
-      areaBottom: "rgba(203, 213, 225, 0.0)",
-    },
-    blue: {
-      text: "text-blue-400",
-      bg: "bg-blue-500/10",
-      border: "border-blue-500/20",
-      line: "#3b82f6",
-      areaTop: "rgba(59, 130, 246, 0.4)",
-      areaBottom: "rgba(59, 130, 246, 0.0)",
-    }
-  };
-
-  const colors = themeColors[theme];
-
-  useEffect(() => {
-    if (!chartContainerRef.current || !commodity) return;
-
-    const handleResize = () => {
-      chartRef.current?.applyOptions({ 
-        width: chartContainerRef.current?.clientWidth,
-        height: window.innerWidth < 768 ? 220 : 300
-      });
-    };
-
-    const isMobile = window.innerWidth < 768;
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#9ca3af',
-      },
-      grid: {
-        vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
-        horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
-      },
-      localization: {
-        priceFormatter: (price: number) => '₹' + price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-      },
-      rightPriceScale: {
-        minimumWidth: 110,
-      },
-      width: chartContainerRef.current.clientWidth,
-      height: isMobile ? 220 : 300,
-      timeScale: {
-        timeVisible: true,
-        secondsVisible: false,
-      },
-    });
-    
-    chartRef.current = chart;
-
-    const candlestickSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#10b981',
-      downColor: '#ef4444',
-      borderVisible: false,
-      wickUpColor: '#10b981',
-      wickDownColor: '#ef4444',
-    });
-
-    candlestickSeries.setData(commodity.data[timeframe]);
-    chart.timeScale().fitContent();
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      chart.remove();
-    };
-  }, [commodity, timeframe]);
+  const commodities = Object.entries(data).map(([key, value]) => ({
+    key,
+    ...value
+  }));
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl flex flex-col">
-      {/* Header */}
-      <div className="p-3.5 sm:p-6 border-b border-white/10 flex flex-col sm:flex-row sm:justify-between items-start gap-3 sm:gap-4">
-        <div className="min-w-0">
-          <h3 className={`text-base sm:text-xl font-bold truncate ${colors.text}`}>{commodity.name}</h3>
-          <div className="flex items-center gap-2.5 mt-1.5">
-            <span className="text-xl sm:text-2xl font-mono text-white">₹{commodity.current_price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            <div className={`flex flex-col text-[10px] sm:text-sm font-mono leading-none ${isBullish ? 'text-emerald-400' : 'text-red-400'}`}>
-              <span className="flex items-center gap-0.5">
-                {isBullish ? <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" /> : <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4" />}
-                {commodity.change.replace(/[+-]/, match => match + '₹')}
-              </span>
-              <span>{commodity.change_pct}</span>
+    <div className="w-full flex flex-col mt-4">
+      {/* Desktop view */}
+      <div className="hidden md:block overflow-x-auto rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl shadow-2xl">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-white/10 bg-white/5 text-[11px] font-extrabold uppercase tracking-wider text-zinc-400">
+              <th className="p-4 font-semibold w-1/4">Commodity</th>
+              <th className="p-4 font-semibold">Trend</th>
+              <th className="p-4 font-semibold">Live Rate</th>
+              <th className="p-4 font-semibold">AI Prediction Target</th>
+              <th className="p-4 font-semibold text-right">Catalyst Engine</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {commodities.map((c) => {
+              const isBullish = c.trend === "bullish";
+              const trendClass = isBullish 
+                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
+                : "bg-red-500/10 text-red-400 border border-red-500/20";
+              const valueClass = isBullish ? "text-emerald-400" : "text-red-400";
+              
+              return (
+                <tr key={c.key} className="transition-colors hover:bg-white/5 group">
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`h-10 w-10 rounded-full flex items-center justify-center border border-white/10 ${isBullish ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20' : 'bg-gradient-to-br from-red-500/20 to-orange-500/20'}`}>
+                        <Activity className={`w-5 h-5 ${isBullish ? 'text-green-400' : 'text-red-400'}`} />
+                      </div>
+                      <div>
+                        <div className="font-bold text-base text-white">{c.name.split(" (")[0]}</div>
+                        <div className="text-xs text-zinc-500">{c.name.includes(" (") ? c.name.split(" (")[1].replace(")", "") : ""}</div>
+                      </div>
+                    </div>
+                  </td>
+                  
+                  <td className="p-4">
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${trendClass}`}>
+                      {isBullish ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                      {c.trend.toUpperCase()}
+                    </span>
+                  </td>
+
+                  <td className="p-4 font-mono">
+                    <div className="text-white font-bold text-sm">
+                      ₹{c.current_price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                    <div className={`text-xs ${valueClass} font-semibold flex items-center gap-0.5`}>
+                      {c.change.startsWith("+") || c.change.startsWith("-") ? "" : (isBullish ? "+" : "-")}
+                      {c.change} ({c.change_pct})
+                    </div>
+                  </td>
+
+                  <td className="p-4">
+                    <p className={`text-sm ${valueClass} font-medium max-w-md`}>
+                      {c.prediction}
+                    </p>
+                  </td>
+
+                  <td className="p-4 text-right">
+                    <button
+                      onClick={() => setSelectedNews({ ticker: c.name.split(" (")[0], news: c.catalyst })}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-lg text-xs font-semibold transition-colors hover:bg-cyan-500/20"
+                    >
+                      <Info className="w-4 h-4" />
+                      View Catalyst
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile Card view */}
+      <div className="block md:hidden space-y-2">
+        {commodities.map((c) => {
+          const isBullish = c.trend === "bullish";
+          const trendClass = isBullish 
+            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
+            : "bg-red-500/10 text-red-400 border border-red-500/20";
+          const valueClass = isBullish ? "text-emerald-400" : "text-red-400";
+          
+          return (
+            <div key={c.key} className="p-2.5 rounded-lg flex flex-col gap-2 shadow-md border border-white/10 bg-zinc-900/40">
+              {/* Header */}
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-1.5">
+                  <div className={`h-7 w-7 rounded-full flex items-center justify-center border border-white/10 ${isBullish ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20' : 'bg-gradient-to-br from-red-500/20 to-orange-500/20'}`}>
+                    <Activity className={`w-3.5 h-3.5 ${isBullish ? 'text-green-400' : 'text-red-400'}`} />
+                  </div>
+                  <div>
+                    <div className="font-bold text-xs text-white leading-tight">{c.name.split(" (")[0]}</div>
+                    <div className="text-[9px] text-zinc-500 leading-none">{c.name.includes(" (") ? c.name.split(" (")[1].replace(")", "") : ""}</div>
+                  </div>
+                </div>
+
+                <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-semibold ${trendClass}`}>
+                  {isBullish ? <TrendingUp className="w-2 h-2" /> : <TrendingDown className="w-2 h-2" />}
+                  {c.trend.toUpperCase()}
+                </span>
+              </div>
+
+              {/* Catalyst Button */}
+              <div className="bg-black/20 p-2 rounded-md border border-white/5">
+                <button
+                  onClick={() => setSelectedNews({ ticker: c.name.split(" (")[0], news: c.catalyst })}
+                  className="text-left w-full group/btn"
+                >
+                  <div className="text-[10px] text-zinc-300 group-hover/btn:text-cyan-400 transition-colors flex items-start gap-1">
+                    <Info className="w-3 h-3 shrink-0 text-cyan-400 mt-0.5" />
+                    <div className="line-clamp-2 leading-normal">
+                      {c.catalyst}
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              {/* Price & Prediction Grid */}
+              <div className="grid grid-cols-2 gap-2 mt-0.5">
+                <div className="bg-white/5 p-1.5 rounded border border-white/5 flex flex-col gap-0.5">
+                  <span className="text-zinc-500 text-[7px] uppercase font-bold tracking-wider leading-none">Live Rate</span>
+                  <div className="flex flex-col text-[9px] font-mono leading-tight mt-0.5">
+                    <div className="text-white font-bold">
+                      ₹{c.current_price.toLocaleString('en-IN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                    </div>
+                    <div className={`text-[8px] ${valueClass} font-semibold`}>
+                      {c.change.startsWith("+") || c.change.startsWith("-") ? "" : (isBullish ? "+" : "-")}
+                      {c.change} ({c.change_pct})
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white/5 p-1.5 rounded border border-white/5 flex flex-col gap-0.5">
+                  <span className="text-zinc-500 text-[7px] uppercase font-bold tracking-wider leading-none">AI Prediction Target</span>
+                  <p className={`text-[8px] leading-tight mt-0.5 font-medium ${valueClass}`}>
+                    {c.prediction}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        
-        <div className="flex bg-black/40 p-1 rounded-xl border border-white/10 w-full sm:w-auto justify-around">
-          {['1D', '1W', '1M', '1Y'].map(t => (
-            <button 
-              key={t}
-              onClick={() => setTimeframe(t as any)}
-              className={`flex-1 sm:flex-none flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg transition-all ${timeframe === t ? `${colors.bg} ${colors.text} shadow-md` : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Chart */}
-      <div className="w-full h-[220px] sm:h-[300px] p-2 sm:p-4 bg-black/20" ref={chartContainerRef} />
-
-      {/* Catalyst News */}
-      <div className="p-3.5 sm:p-6 bg-black/40 border-t border-white/10 flex-1 flex flex-col gap-3 sm:gap-4">
-        <div className="flex flex-col gap-1 sm:gap-2">
-          <div className="flex items-center gap-1.5 text-zinc-400 text-[9px] sm:text-xs uppercase tracking-wider font-bold">
-            <Info className="w-3.5 h-3.5" />
-            Rate Prediction News
-          </div>
-          <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-            {commodity.catalyst}
-          </p>
-        </div>
-
-        <div className={`mt-auto p-3 sm:p-4 rounded-xl border ${isBullish ? 'bg-emerald-950/20 border-emerald-900/30' : 'bg-red-950/20 border-red-900/30'}`}>
-          <div className="flex items-center gap-1.5 mb-1">
-            {isBullish ? <TrendingUp className="w-3.5 h-3.5 text-emerald-400" /> : <TrendingDown className="w-3.5 h-3.5 text-red-400" />}
-            <span className={`text-[9px] sm:text-xs uppercase tracking-wider font-bold ${isBullish ? 'text-emerald-500' : 'text-red-500'}`}>
-              AI Vector Prediction
-            </span>
-          </div>
-          <p className={`text-xs sm:text-sm ${isBullish ? 'text-emerald-400' : 'text-red-400'}`}>
-            {commodity.prediction}
-          </p>
-        </div>
+          );
+        })}
       </div>
     </div>
   );

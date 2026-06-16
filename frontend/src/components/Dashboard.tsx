@@ -207,6 +207,22 @@ export default function Dashboard() {
             ))}
           </div>
 
+          {/* Stocks/News Toggle */}
+          <div className="flex bg-zinc-900/80 p-1 rounded-xl border border-white/10">
+            <button 
+              onClick={() => setViewType('stocks')}
+              className={`flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg transition-all ${viewType === 'stocks' ? 'bg-indigo-500/20 text-indigo-400 shadow-md' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
+            >
+              <Activity className="w-3.5 h-3.5" /> Stocks
+            </button>
+            <button 
+              onClick={() => setViewType('news')}
+              className={`flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg transition-all ${viewType === 'news' ? 'bg-indigo-500/20 text-indigo-400 shadow-md' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
+            >
+              <Globe className="w-3.5 h-3.5" /> News
+            </button>
+          </div>
+
           <div className="flex items-center gap-3 border-l border-white/10 pl-6 h-10">
             <button 
               onClick={() => setRefreshTrigger(prev => prev + 1)}
@@ -303,20 +319,28 @@ export default function Dashboard() {
       </header>
 
       {/* Desktop Tabs */}
-      <div className="hidden md:flex gap-4 mb-6">
-        <button 
-          onClick={() => setActiveSection('bullish')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeSection !== 'bearish' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10'}`}
-        >
-          <TrendingUp className="w-5 h-5" /> Bullish Catalysts
-        </button>
-        <button 
-          onClick={() => setActiveSection('bearish')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeSection === 'bearish' ? 'bg-red-500/20 text-red-400 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10'}`}
-        >
-          <TrendingDown className="w-5 h-5" /> Bearish Catalysts
-        </button>
-      </div>
+      {viewType === 'stocks' && (
+        <div className="hidden md:flex gap-4 mb-6">
+          <button 
+            onClick={() => setActiveSection('bullish')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeSection === 'bullish' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10'}`}
+          >
+            <TrendingUp className="w-5 h-5" /> Bullish Catalysts
+          </button>
+          <button 
+            onClick={() => setActiveSection('bearish')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeSection === 'bearish' ? 'bg-red-500/20 text-red-400 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10'}`}
+          >
+            <TrendingDown className="w-5 h-5" /> Bearish Catalysts
+          </button>
+          <button 
+            onClick={() => setActiveSection('commodities')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${activeSection === 'commodities' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'bg-white/5 text-zinc-400 hover:bg-white/10'}`}
+          >
+            <Activity className="w-5 h-5" /> Commodities
+          </button>
+        </div>
+      )}
 
       {/* Mobile Tabs */}
       {viewType === 'stocks' && (
@@ -352,19 +376,22 @@ export default function Dashboard() {
             <>
               {activeSection === 'bullish' && <PicksTable picks={bullishPicks} isBearish={false} setSelectedNews={setSelectedNews} />}
               {activeSection === 'bearish' && <PicksTable picks={bearishPicks} isBearish={true} setSelectedNews={setSelectedNews} />}
-              {activeSection === 'commodities' && <CommoditiesSection refreshTrigger={refreshTrigger} />}
+              {activeSection === 'commodities' && <CommoditiesSection refreshTrigger={refreshTrigger} setSelectedNews={setSelectedNews} />}
             </>
           )}
         </div>
 
-        {/* Desktop rendering logic (Commodities always visible, toggle between bull/bear tables) */}
+        {/* Desktop rendering logic */}
         <div className="hidden md:block">
-          {activeSection !== 'bearish' ? (
-            <PicksTable picks={bullishPicks} isBearish={false} setSelectedNews={setSelectedNews} />
+          {viewType === 'news' ? (
+            <NewsSection articles={newsArticles} isLoading={isNewsLoading} />
           ) : (
-            <PicksTable picks={bearishPicks} isBearish={true} setSelectedNews={setSelectedNews} />
+            <>
+              {activeSection === 'bullish' && <PicksTable picks={bullishPicks} isBearish={false} setSelectedNews={setSelectedNews} />}
+              {activeSection === 'bearish' && <PicksTable picks={bearishPicks} isBearish={true} setSelectedNews={setSelectedNews} />}
+              {activeSection === 'commodities' && <CommoditiesSection refreshTrigger={refreshTrigger} setSelectedNews={setSelectedNews} />}
+            </>
           )}
-          <CommoditiesSection refreshTrigger={refreshTrigger} />
         </div>
       </div>
 
@@ -413,13 +440,13 @@ function NewsSection({ articles, isLoading }: { articles: any[], isLoading: bool
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {articles.map((art) => {
         const score = art.sentiment_score || 0;
         const sentimentClass = score > 0.1 
-          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
           : score < -0.1 
-          ? "bg-red-500/10 text-red-400 border-red-500/20" 
+          ? "bg-red-500/10 text-red-400 border border-red-500/20" 
           : "bg-zinc-500/10 text-zinc-400 border border-zinc-500/20";
         const sentimentLabel = score > 0.1 
           ? "Bullish" 
@@ -434,13 +461,14 @@ function NewsSection({ articles, isLoading }: { articles: any[], isLoading: bool
                 {sentimentLabel} ({score.toFixed(1)})
               </span>
               <span className="text-[9px] text-zinc-500 font-mono">
-                {art.source} • {new Date(art.published_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {art.source} • {new Date(art.published_at).toLocaleDateString([], { month: 'short', day: 'numeric' })} {new Date(art.published_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
             <h3 className="text-sm font-bold text-white leading-snug">{art.title}</h3>
             <p className="text-xs text-zinc-400 leading-relaxed">{art.content}</p>
             {art.tickers && art.tickers.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-0.5">
+              <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider">Stocks Affected:</span>
                 {art.tickers.map((t: string) => (
                   <span key={t} className="text-[9px] font-bold font-mono bg-cyan-900/20 text-cyan-400 px-1.5 py-0.5 rounded border border-cyan-800/30">
                     #{t}

@@ -187,7 +187,7 @@ def get_live_prices_cached():
             return _cached_prices.copy()
             
     # Collect all unique symbols to query
-    symbols = {"GC=F", "SI=F", "CL=F", "USDINR=X"}
+    symbols = {"GC=F", "SI=F", "CL=F", "HG=F", "NG=F", "PL=F", "USDINR=X"}
     
     try:
         base_picks = get_base_picks()
@@ -259,6 +259,15 @@ def get_mock_commodities():
         
         crude_usd = live_prices.get("CL=F", {}).get("price", 84.88)
         prev_crude_usd = live_prices.get("CL=F", {}).get("prev_close", 87.71)
+
+        copper_usd = live_prices.get("HG=F", {}).get("price", 4.50)
+        prev_copper_usd = live_prices.get("HG=F", {}).get("prev_close", 4.45)
+
+        natural_gas_usd = live_prices.get("NG=F", {}).get("price", 2.60)
+        prev_natural_gas_usd = live_prices.get("NG=F", {}).get("prev_close", 2.65)
+
+        platinum_usd = live_prices.get("PL=F", {}).get("price", 980.0)
+        prev_platinum_usd = live_prices.get("PL=F", {}).get("prev_close", 975.0)
         
         usdinr = live_prices.get("USDINR=X", {}).get("price", 95.10)
         prev_usdinr = live_prices.get("USDINR=X", {}).get("prev_close", 95.75)
@@ -272,11 +281,23 @@ def get_mock_commodities():
         
         crude_inr = round(crude_usd * usdinr * 1.02, 2)
         prev_crude_inr = round(prev_crude_usd * prev_usdinr * 1.02, 2)
+
+        copper_inr = round(copper_usd * 2.20462 * usdinr * 1.03, 2)
+        prev_copper_inr = round(prev_copper_usd * prev_usdinr * 2.20462 * 1.03, 2)
+
+        natural_gas_inr = round(natural_gas_usd * usdinr * 1.05, 2)
+        prev_natural_gas_inr = round(prev_natural_gas_usd * prev_usdinr * 1.05, 2)
+
+        platinum_inr = round((platinum_usd * usdinr / 31.1034768) * 10 * 1.12, 2)
+        prev_platinum_inr = round((prev_platinum_usd * prev_usdinr / 31.1034768) * 10 * 1.12, 2)
         
         # Apply jitter for active tick visual feedback on refresh/sync
         gold_inr = apply_jitter(gold_inr)
         silver_inr = apply_jitter(silver_inr)
         crude_inr = apply_jitter(crude_inr)
+        copper_inr = apply_jitter(copper_inr)
+        natural_gas_inr = apply_jitter(natural_gas_inr)
+        platinum_inr = apply_jitter(platinum_inr)
         
         # Calculate rates change and trends
         gold_change = gold_inr - prev_gold_inr
@@ -290,6 +311,18 @@ def get_mock_commodities():
         crude_change = crude_inr - prev_crude_inr
         crude_pct = (crude_change / prev_crude_inr) * 100
         crude_trend = "bullish" if crude_change >= 0 else "bearish"
+
+        copper_change = copper_inr - prev_copper_inr
+        copper_pct = (copper_change / prev_copper_inr) * 100
+        copper_trend = "bullish" if copper_change >= 0 else "bearish"
+
+        natural_gas_change = natural_gas_inr - prev_natural_gas_inr
+        natural_gas_pct = (natural_gas_change / prev_natural_gas_inr) * 100
+        natural_gas_trend = "bullish" if natural_gas_change >= 0 else "bearish"
+
+        platinum_change = platinum_inr - prev_platinum_inr
+        platinum_pct = (platinum_change / prev_platinum_inr) * 100
+        platinum_trend = "bullish" if platinum_change >= 0 else "bearish"
         
         # Format values
         gold_change_str = f"+{gold_change:.2f}" if gold_change >= 0 else f"{gold_change:.2f}"
@@ -300,6 +333,15 @@ def get_mock_commodities():
         
         crude_change_str = f"+{crude_change:.2f}" if crude_change >= 0 else f"{crude_change:.2f}"
         crude_pct_str = f"+{crude_pct:.2f}%" if crude_pct >= 0 else f"{crude_pct:.2f}%"
+
+        copper_change_str = f"+{copper_change:.2f}" if copper_change >= 0 else f"{copper_change:.2f}"
+        copper_pct_str = f"+{copper_pct:.2f}%" if copper_pct >= 0 else f"{copper_pct:.2f}%"
+
+        natural_gas_change_str = f"+{natural_gas_change:.2f}" if natural_gas_change >= 0 else f"{natural_gas_change:.2f}"
+        natural_gas_pct_str = f"+{natural_gas_pct:.2f}%" if natural_gas_pct >= 0 else f"{natural_gas_pct:.2f}%"
+
+        platinum_change_str = f"+{platinum_change:.2f}" if platinum_change >= 0 else f"{platinum_change:.2f}"
+        platinum_pct_str = f"+{platinum_pct:.2f}%" if platinum_pct >= 0 else f"{platinum_pct:.2f}%"
         
         # Generate predictions dynamically
         if gold_trend == "bullish":
@@ -316,6 +358,21 @@ def get_mock_commodities():
             crude_pred = f"Bullish momentum likely to test ₹{int(round(crude_inr * 1.02, -1)):,} resistance levels if supply constraints persist."
         else:
             crude_pred = f"Bearish momentum likely to test ₹{int(round(crude_inr * 0.98, -1)):,} support levels if supply pressure persists."
+
+        if copper_trend == "bullish":
+            copper_pred = f"Bullish rebound targeting ₹{int(round(copper_inr * 1.015, 0))} resistance levels."
+        else:
+            copper_pred = f"Bearish correction checking demand zones around ₹{int(round(copper_inr * 0.985, 0))}."
+            
+        if natural_gas_trend == "bullish":
+            natural_gas_pred = f"Bullish utility demand drives breakout to test ₹{int(round(natural_gas_inr * 1.03, 0))}."
+        else:
+            natural_gas_pred = f"Bearish sentiment targets support line near ₹{int(round(natural_gas_inr * 0.97, 0))}."
+            
+        if platinum_trend == "bullish":
+            platinum_pred = f"Bullish investment allocation tests ₹{int(round(platinum_inr * 1.01, -2)):,} range."
+        else:
+            platinum_pred = f"Bearish discount pulls rates down towards ₹{int(round(platinum_inr * 0.99, -2)):,}."
             
         return {
             "gold": {
@@ -325,13 +382,7 @@ def get_mock_commodities():
                 "change_pct": gold_pct_str,
                 "trend": gold_trend,
                 "catalyst": "Central bank buying from emerging markets remains aggressively high. Safe-haven demand spiking ahead of key geopolitical elections.",
-                "prediction": gold_pred,
-                "data": {
-                    "1D": generate_commodity_data(gold_inr, 0.002, 0.0005, 24),
-                    "1W": generate_commodity_data(gold_inr, 0.004, 0.001, 7), 
-                    "1M": generate_commodity_data(gold_inr, 0.006, 0.002, 30),
-                    "1Y": generate_commodity_data(gold_inr, 0.015, 0.0005, 365)
-                }
+                "prediction": gold_pred
             },
             "silver": {
                 "name": "Silver (MCX INR/1kg)",
@@ -340,13 +391,7 @@ def get_mock_commodities():
                 "change_pct": silver_pct_str,
                 "trend": silver_trend,
                 "catalyst": "Industrial demand forecast cut by Chinese manufacturers. Solar panel production slowing down due to excessive inventory build-up.",
-                "prediction": silver_pred,
-                "data": {
-                    "1D": generate_commodity_data(silver_inr, 0.005, -0.001, 24),
-                    "1W": generate_commodity_data(silver_inr, 0.01, -0.002, 7),
-                    "1M": generate_commodity_data(silver_inr, 0.02, 0.001, 30),
-                    "1Y": generate_commodity_data(silver_inr, 0.03, 0.001, 365)
-                }
+                "prediction": silver_pred
             },
             "crude_oil": {
                 "name": "Crude Oil (MCX INR/BBL)",
@@ -355,13 +400,34 @@ def get_mock_commodities():
                 "change_pct": crude_pct_str,
                 "trend": crude_trend,
                 "catalyst": "OPEC+ extends voluntary production cuts into Q4. Geopolitical tensions in the Middle East threatening key supply routes.",
-                "prediction": crude_pred,
-                "data": {
-                    "1D": generate_commodity_data(crude_inr, 0.003, 0.001, 24),
-                    "1W": generate_commodity_data(crude_inr, 0.008, 0.002, 7),
-                    "1M": generate_commodity_data(crude_inr, 0.015, 0.001, 30),
-                    "1Y": generate_commodity_data(crude_inr, 0.02, 0.0005, 365)
-                }
+                "prediction": crude_pred
+            },
+            "copper": {
+                "name": "Copper (MCX INR/kg)",
+                "current_price": copper_inr,
+                "change": copper_change_str,
+                "change_pct": copper_pct_str,
+                "trend": copper_trend,
+                "catalyst": "LME inventory drops by 8% over the rolling week. Infrastructure spending in Asia boosting copper demand.",
+                "prediction": copper_pred
+            },
+            "natural_gas": {
+                "name": "Natural Gas (MCX INR/mmBtu)",
+                "current_price": natural_gas_inr,
+                "change": natural_gas_change_str,
+                "change_pct": natural_gas_pct_str,
+                "trend": natural_gas_trend,
+                "catalyst": "Weaker domestic heating forecasts and robust pipeline production capacity in the US.",
+                "prediction": natural_gas_pred
+            },
+            "platinum": {
+                "name": "Platinum (MCX INR/10g)",
+                "current_price": platinum_inr,
+                "change": platinum_change_str,
+                "change_pct": platinum_pct_str,
+                "trend": platinum_trend,
+                "catalyst": "South African mining operations report labor unrest risks, threatening platinum supply lines.",
+                "prediction": platinum_pred
             }
         }
     except Exception as e:
@@ -375,13 +441,7 @@ def get_mock_commodities():
                 "change_pct": "+0.26%",
                 "trend": "bullish",
                 "catalyst": "Central bank buying from emerging markets remains aggressively high. Safe-haven demand spiking ahead of key geopolitical elections.",
-                "prediction": "Bullish breakout expected above ₹150,500 resistance within the next 48 hours.",
-                "data": {
-                    "1D": generate_commodity_data(149650, 0.002, 0.0005, 24),
-                    "1W": generate_commodity_data(149000, 0.004, 0.001, 7), 
-                    "1M": generate_commodity_data(145000, 0.006, 0.002, 30),
-                    "1Y": generate_commodity_data(135000, 0.015, 0.0005, 365)
-                }
+                "prediction": "Bullish breakout expected above ₹150,500 resistance within the next 48 hours."
             },
             "silver": {
                 "name": "Silver (MCX INR/1kg)",
@@ -390,13 +450,7 @@ def get_mock_commodities():
                 "change_pct": "-0.52%",
                 "trend": "bearish",
                 "catalyst": "Industrial demand forecast cut by Chinese manufacturers. Solar panel production slowing down due to excessive inventory build-up.",
-                "prediction": "Bearish slide to test ₹245,000 psychological support level amid weak macro data.",
-                "data": {
-                    "1D": generate_commodity_data(247200, 0.005, -0.001, 24),
-                    "1W": generate_commodity_data(250000, 0.01, -0.002, 7),
-                    "1M": generate_commodity_data(240000, 0.02, 0.001, 30),
-                    "1Y": generate_commodity_data(220000, 0.03, 0.001, 365)
-                }
+                "prediction": "Bearish slide to test ₹245,000 psychological support level amid weak macro data."
             },
             "crude_oil": {
                 "name": "Crude Oil (MCX INR/BBL)",
@@ -405,13 +459,34 @@ def get_mock_commodities():
                 "change_pct": "+2.15%",
                 "trend": "bullish",
                 "catalyst": "OPEC+ extends voluntary production cuts into Q4. Geopolitical tensions in the Middle East threatening key supply routes.",
-                "prediction": "Bullish momentum likely to test ₹6,800 resistance levels if supply constraints persist.",
-                "data": {
-                    "1D": generate_commodity_data(6480, 0.003, 0.001, 24),
-                    "1W": generate_commodity_data(6550, 0.008, 0.002, 7),
-                    "1M": generate_commodity_data(6200, 0.015, 0.001, 30),
-                    "1Y": generate_commodity_data(5800, 0.02, 0.0005, 365)
-                }
+                "prediction": "Bullish momentum likely to test ₹6,800 resistance levels if supply constraints persist."
+            },
+            "copper": {
+                "name": "Copper (MCX INR/kg)",
+                "current_price": 840.00,
+                "change": "+5.50",
+                "change_pct": "+0.66%",
+                "trend": "bullish",
+                "catalyst": "LME inventory drops by 8% over the rolling week. Infrastructure spending in Asia boosting copper demand.",
+                "prediction": "Bullish rebound targeting ₹852 resistance levels."
+            },
+            "natural_gas": {
+                "name": "Natural Gas (MCX INR/mmBtu)",
+                "current_price": 215.00,
+                "change": "-3.20",
+                "change_pct": "-1.47%",
+                "trend": "bearish",
+                "catalyst": "Weaker domestic heating forecasts and robust pipeline production capacity in the US.",
+                "prediction": "Bearish sentiment targets support line near ₹208."
+            },
+            "platinum": {
+                "name": "Platinum (MCX INR/10g)",
+                "current_price": 28800.00,
+                "change": "+120.00",
+                "change_pct": "+0.42%",
+                "trend": "bullish",
+                "catalyst": "South African mining operations report labor unrest risks, threatening platinum supply lines.",
+                "prediction": "Bullish investment allocation tests ₹29,100 range."
             }
         }
 
